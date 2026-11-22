@@ -303,6 +303,18 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
   .btn { transition: none; }
 }
 
+/* Onde estamos */
+.local { padding-top: 0; }
+.local__linha {
+  display: flex; flex-direction: column; gap: .2rem;
+  padding: 1rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--cor-texto) 18%, transparent);
+}
+.local__linha strong { color: var(--cor-principal); font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; }
+.local__mapa { margin: 1rem 0 1.25rem; border-radius: 16px; overflow: hidden; background: color-mix(in srgb, var(--cor-texto) 8%, transparent); }
+.local__mapa iframe { display: block; width: 100%; height: 280px; border: 0; }
+.local .btn { width: 100%; }
+
 </style>
 </head>
 <body>
@@ -339,7 +351,14 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
       <ul class="destaques" id="destaques"></ul>
     </section>
 
-    <!-- As próximas seções entram nas etapas seguintes -->
+    <!-- Endereço, horário e mapa -->
+    <section class="sobre local" id="local">
+      <h2>Onde estamos</h2>
+      <p class="local__linha"><strong>Endereço</strong><span id="endereco"></span></p>
+      <p class="local__linha"><strong>Horário</strong><span id="horario"></span></p>
+      <div class="local__mapa" id="mapa"></div>
+      <a class="btn btn--principal" id="btn-rota" href="#" target="_blank" rel="noopener">Como chegar</a>
+    </section>
   </main>
 
   <footer class="rodape">
@@ -373,6 +392,10 @@ window.CONFIG = {
   // WhatsApp: só números, com 55 + DDD + número. Exemplo: 5511999998888
   whatsapp: "5599984360319",
   mensagemWhatsapp: "Olá! Gostaria de fazer um pedido.",
+
+  // Endereço e horário (aparecem na seção "Onde estamos", com o mapa)
+  endereco: "Rua Nazeu Quadros, 06, Bairro São Sebastião, Codó - MA",
+  horario: "Segunda a sábado, das 18h às 23h",
 
   // Instagram: só o nome de usuário, sem @
   instagram: "primaverasabor",
@@ -634,6 +657,29 @@ window.CONFIG = {
     $("btn-instagram").href = "https://instagram.com/" + encodeURIComponent(usuario);
   } else {
     $("btn-instagram").hidden = true;
+  }
+
+  /* Endereço, horário e mapa */
+  if (c.endereco || c.horario) {
+    $("endereco").textContent = c.endereco || "";
+    $("horario").textContent = c.horario || "";
+    if (!c.endereco) $("endereco").parentNode.hidden = true;
+    if (!c.horario) $("horario").parentNode.hidden = true;
+    if (c.endereco) {
+      var q = encodeURIComponent(c.endereco);
+      var mapa = document.createElement("iframe");
+      mapa.src = "https://maps.google.com/maps?q=" + q + "&z=16&output=embed";
+      mapa.title = "Mapa: " + c.endereco;
+      mapa.loading = "lazy";
+      mapa.referrerPolicy = "no-referrer-when-downgrade";
+      $("mapa").appendChild(mapa);
+      $("btn-rota").href = "https://www.google.com/maps/search/?api=1&query=" + q;
+    } else {
+      $("mapa").hidden = true;
+      $("btn-rota").hidden = true;
+    }
+  } else {
+    $("local").hidden = true;
   }
 
   /* ---------- Cardápio ---------- */
