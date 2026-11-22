@@ -396,6 +396,8 @@ window.CONFIG = {
   // Endereço e horário (aparecem na seção "Onde estamos", com o mapa)
   endereco: "Rua Nazeu Quadros, 06, Bairro São Sebastião, Codó - MA",
   horario: "Segunda a sábado, das 18h às 23h",
+  // Ponto exato no mapa (latitude, longitude), tirado do link do Google Maps do restaurante
+  coordenadas: "-4.464623,-43.881666",
 
   // Instagram: só o nome de usuário, sem @
   instagram: "primaverasabor",
@@ -666,14 +668,14 @@ window.CONFIG = {
     if (!c.endereco) $("endereco").parentNode.hidden = true;
     if (!c.horario) $("horario").parentNode.hidden = true;
     if (c.endereco) {
-      var q = encodeURIComponent(c.endereco);
+      var q = encodeURIComponent(c.coordenadas || c.endereco);
       var mapa = document.createElement("iframe");
-      mapa.src = "https://maps.google.com/maps?q=" + q + "&z=16&output=embed";
+      mapa.src = "https://maps.google.com/maps?q=" + q + "&z=17&output=embed";
       mapa.title = "Mapa: " + c.endereco;
       mapa.loading = "lazy";
       mapa.referrerPolicy = "no-referrer-when-downgrade";
       $("mapa").appendChild(mapa);
-      $("btn-rota").href = "https://www.google.com/maps/search/?api=1&query=" + q;
+      $("btn-rota").href = "https://www.google.com/maps/dir/?api=1&destination=" + q;
     } else {
       $("mapa").hidden = true;
       $("btn-rota").hidden = true;
