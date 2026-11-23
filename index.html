@@ -574,7 +574,7 @@ window.CONFIG = {
   // O site lê a PLANILHA DO GOOGLE abaixo. Cole aqui o link de "Publicar na Web" (formato CSV).
   // Se a planilha não abrir, o site usa as listas de reserva logo abaixo (pode deixar vazias).
   cardapioDoDia: {
-    planilha: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_vI3T0VtWS7_ls5gIERm5r9D0aC4PN4vOoygR4eT4vsrUaQ5mvRP93ACOJ1IDP8ams0jPAp1xRQhN/pub?gid=0&single=true&output=csv",
+    planilha: "https://docs.google.com/spreadsheets/d/1hI7qkLOykJHzjBG6UeU47jQ-9PSJE16Z3R0yqFX7BIk/gviz/tq?tqx=out:csv&gid=0&headers=1",
     reserva: { data: "", arroz: [], acompanhamentos: [], especiais: [] }
   },
 
@@ -1578,8 +1578,8 @@ window.CONFIG = {
           }
           cols.push(atual);
           var tipo = (cols[0] || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          var item = (cols[1] || "").trim();
-          if (!item) return;
+          var item = (cols[1] || "").replace(/\*/g, "").trim();
+          if (!item || /^(tipo|item)$/i.test(item)) return;
           if (tipo.indexOf("data") === 0) { if (/\d/.test(item) && !d.data) d.data = item; }
           else if (tipo.indexOf("arroz") === 0) d.arroz.push(item);
           else if (tipo.indexOf("acomp") === 0) d.acompanhamentos.push(item);
