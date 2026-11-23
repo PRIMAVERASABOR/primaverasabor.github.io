@@ -71,6 +71,33 @@
   var FUNDO = "arte-fundo.jpg";
   var ESPETOS_PADRAO = "BOI | FRANGO | PORCO\nTOSCANA | PICANHA";
   var DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+  /* Cardápio FIXO de cada dia (1 = segunda ... 6 = sábado). A planilha só vale como exceção, com a data de hoje. */
+  var SEMANA = {
+    1: { // segunda
+      arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz Baião"],
+      acompanhamentos: ["Purê", "Feijão", "Macarrão", "Macaxeira", "Vinagrete", "Farofa"]
+    },
+    2: { // terça
+      arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz de Fava"],
+      acompanhamentos: ["Salada mista", "Feijão", "Macarrão", "Macaxeira", "Farofa", "Vinagrete"]
+    },
+    3: { // quarta
+      arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz de Calabresa"],
+      acompanhamentos: ["Farofa Nordestina", "Feijão", "Macarrão", "Macaxeira", "Vinagrete"]
+    },
+    4: { // quinta
+      arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz de Macarrão"],
+      acompanhamentos: ["Creme de Galinha", "Feijão", "Macarrão", "Macaxeira", "Farofa", "Vinagrete"]
+    },
+    5: { // sexta
+      arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz de Cenoura"],
+      acompanhamentos: ["Feijão Tropeiro", "Farofa", "Macarrão", "Macaxeira", "Vinagrete"]
+    },
+    6: { // sábado
+      arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz Maria Isabel"],
+      acompanhamentos: ["Purê", "Feijão", "Macarrão", "Macaxeira", "Farofa", "Vinagrete"]
+    }
+  };
   /* ========================== */
 
   var cv = document.getElementById("arte"), ctx = cv.getContext("2d");
@@ -126,17 +153,31 @@
     return r;
   };
 
+  /* fixo do dia da semana + exceção da planilha (só se a data for de hoje) */
+  var juntar = function (r, semana) {
+    var f = SEMANA[semana] || {};
+    var d = { data: "", arroz: (f.arroz || []).slice(), acomp: (f.acompanhamentos || []).slice(), espec: [], promo: [] };
+    if (r) ["arroz", "acomp", "espec", "promo"].forEach(function (k) { if (r[k].length) d[k] = r[k]; });
+    return d;
+  };
   var aplicar = function (r) {
     var h = hojeCodo(), dt = r.data ? lerData(r.data) : null;
+    var excHoje = dt && dt.dia === h.dia && dt.mes === h.mes;
+    if (!excHoje && h.semana === 0) {
+      txAcomp.value = ""; txEspec.value = ""; txPromo.value = ""; selDia.value = 0; dataArte = h.dia + "-" + h.mes;
+      aviso("atencao", "Hoje é domingo (fechado). Escolha o dia em “Ajustar antes de postar” para montar a arte de outro dia.");
+      desenhar(); return;
+    }
+    r = juntar(excHoje ? r : null, h.semana);
+    dt = null;
     var arroz = r.arroz.map(function (a) { return /^(arroz|bai[aã]o)/i.test(a) ? a : "Arroz " + a; });
     txAcomp.value = arroz.concat(r.acomp).join("\n");
     txEspec.value = r.espec.join("\n");
     txPromo.value = r.promo.join("\n");
     selDia.value = dt ? dt.semana : h.semana;
     dataArte = dt ? (dt.dia + "-" + dt.mes) : (h.dia + "-" + h.mes);
-    if (!arroz.length && !r.acomp.length) aviso("erro", "A planilha está sem linhas de Arroz ou Acompanhamento. Preencha a planilha ou escreva em “Ajustar antes de postar”.");
-    else if (dt && !(dt.dia === h.dia && dt.mes === h.mes)) aviso("atencao", "Atenção: a planilha está com a data " + r.data + " (" + DIAS[dt.semana] + "). Se for o cardápio de hoje, atualize a planilha e toque em “Buscar de novo”.");
-    else aviso("ok", "Pronto! Cardápio de " + DIAS[dt ? dt.semana : h.semana] + " carregado da planilha.");
+    if (excHoje) aviso("ok", "Pronto! Cardápio de " + DIAS[h.semana] + " com a mudança de hoje da planilha.");
+    else aviso("ok", "Pronto! Cardápio fixo de " + DIAS[h.semana] + ".");
     desenhar();
   };
 
@@ -151,7 +192,8 @@
       .then(function (t) { aplicar(lerCSV(t)); })
       .catch(function (e) {
         aviso("erro", "Não consegui abrir a planilha (" + (e && e.message || "sem internet?") + "). Você pode escrever o cardápio em “Ajustar antes de postar”.");
-        selDia.value = hojeCodo().semana; desenhar();
+        aplicar({ data: "", arroz: [], acomp: [], espec: [], promo: [] });
+        aviso("atencao", "Não consegui abrir a planilha, então usei o cardápio fixo de hoje. Se hoje tiver mudança, ajuste abaixo.");
       });
   };
 
@@ -334,6 +376,16 @@
   };
   el("recarregar").onclick = buscar;
   [selDia, txAcomp, txEspec, txEspetos, txPromo].forEach(function (c) { c.addEventListener("input", desenhar); });
+  /* trocou o dia na lista: carrega o cardápio fixo daquele dia (para fazer a arte de amanhã, por exemplo) */
+  selDia.addEventListener("change", function () {
+    var f = SEMANA[+selDia.value];
+    if (!f) return;
+    txAcomp.value = f.arroz.concat(f.acompanhamentos).join("\n");
+    var h = hojeCodo(), dif = (+selDia.value - h.semana + 7) % 7, dt = new Date(Date.UTC(h.ano, h.mes - 1, h.dia + dif));
+    dataArte = dt.getUTCDate() + "-" + (dt.getUTCMonth() + 1);
+    aviso("ok", "Cardápio fixo de " + DIAS[+selDia.value] + " carregado. Confira e ajuste se precisar.");
+    desenhar();
+  });
 
   var marcar = function () {
     el("m-novo").classList.toggle("ativo", modelo === "novo");
