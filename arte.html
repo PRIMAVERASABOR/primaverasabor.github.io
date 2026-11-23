@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Arte do cardápio – Primavera Sabor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@300;400;800&display=swap" rel="stylesheet">
+<style>
+  :root { --fundo:#141110; --cartao:#211c19; --texto:#f4ede4; --suave:#b9ab9b; --ouro:#e3a72f; --verde:#2f8f5b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fundo); color:var(--texto); font:16px/1.45 Poppins, system-ui, sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:16px 16px 40px; }
+  h1 { font-size:20px; margin:4px 0 2px; }
+  .sub { color:var(--suave); font-size:14px; margin:0 0 12px; }
+  .aviso { border-radius:10px; padding:10px 12px; font-size:14px; margin:0 0 12px; background:var(--cartao); }
+  .aviso.ok { border-left:4px solid var(--verde); }
+  .aviso.atencao { border-left:4px solid var(--ouro); }
+  .aviso.erro { border-left:4px solid #d9534f; }
+  canvas { width:100%; height:auto; display:block; border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,.5); background:#000; }
+  .botoes { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
+  button { font:600 16px Poppins, sans-serif; border:0; border-radius:12px; padding:14px 10px; cursor:pointer; }
+  .principal { background:var(--ouro); color:#1b1206; }
+  .secundario { background:#3a322c; color:var(--texto); }
+  .largo { grid-column:1 / -1; }
+  details { background:var(--cartao); border-radius:12px; padding:12px 14px; margin-top:6px; }
+  summary { font-weight:600; cursor:pointer; }
+  label { display:block; font-size:14px; color:var(--suave); margin:12px 0 4px; }
+  textarea, select { width:100%; font:15px Poppins, sans-serif; background:#120f0d; color:var(--texto); border:1px solid #4a4038; border-radius:8px; padding:8px; }
+  textarea { min-height:90px; resize:vertical; }
+  .dica { font-size:13px; color:var(--suave); margin:6px 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Arte do cardápio do dia</h1>
+  <p class="sub">Feita sozinha com o que está na planilha. Confira e poste.</p>
+  <p id="status" class="aviso">Carregando a planilha…</p>
+  <canvas id="arte" width="1080" height="1920" aria-label="Prévia da arte do cardápio"></canvas>
+  <div class="botoes">
+    <button id="compartilhar" class="principal">Compartilhar</button>
+    <button id="baixar" class="secundario">Baixar imagem</button>
+    <button id="recarregar" class="secundario largo">Buscar de novo na planilha</button>
+  </div>
+  <details>
+    <summary>Ajustar antes de postar (opcional)</summary>
+    <p class="dica">O que mudar aqui vale só para esta imagem. A planilha e o site não mudam.</p>
+    <label for="dia">Dia escrito na arte</label>
+    <select id="dia"></select>
+    <label for="acomp">Acompanhamentos (um por linha)</label>
+    <textarea id="acomp" rows="9"></textarea>
+    <label for="espec">Especiais (um por linha)</label>
+    <textarea id="espec" rows="3"></textarea>
+    <label for="espetos">Espetos (cada linha da arte)</label>
+    <textarea id="espetos" rows="2"></textarea>
+  </details>
+</main>
+<script>
+(function () {
+  "use strict";
+  /* ====== CONFIGURAÇÃO ====== */
+  var PLANILHA = "https://docs.google.com/spreadsheets/d/1hI7qkLOykJHzjBG6UeU47jQ-9PSJE16Z3R0yqFX7BIk/gviz/tq?tqx=out:csv&gid=0&headers=1";
+  var FUNDO = "arte-fundo.jpg";
+  var ESPETOS_PADRAO = "BOI | FRANGO | PORCO\nTOSCANA | PICANHA";
+  var DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+  /* ========================== */
+
+  var cv = document.getElementById("arte"), ctx = cv.getContext("2d");
+  var el = function (id) { return document.getElementById(id); };
+  var status = el("status"), selDia = el("dia"), txAcomp = el("acomp"), txEspec = el("espec"), txEspetos = el("espetos");
+  var fundo = new Image(), dataArte = "";
+
+  DIAS.forEach(function (d, i) { var o = document.createElement("option"); o.value = i; o.textContent = d; selDia.appendChild(o); });
+  txEspetos.value = ESPETOS_PADRAO;
+
+  var aviso = function (tipo, texto) { status.className = "aviso " + tipo; status.textContent = texto; };
+
+  /* data de hoje em Codó (UTC-3) */
+  var hojeCodo = function () {
+    var d = new Date(Date.now() - 3 * 3600 * 1000);
+    return { ano: d.getUTCFullYear(), mes: d.getUTCMonth() + 1, dia: d.getUTCDate(), semana: d.getUTCDay() };
+  };
+  var lerData = function (s) {
+    var p = String(s || "").trim().split(" ")[0].split(/[\/\-.]/);
+    if (p.length !== 3) return null;
+    var a, m, d;
+    if (p[0].length === 4) { a = +p[0]; m = +p[1]; d = +p[2]; } else { d = +p[0]; m = +p[1]; a = +p[2]; if (a < 100) a += 2000; }
+    var h = hojeCodo();
+    /* planilha em inglês manda mês/dia: se dia/mês não for hoje mas mês/dia for, troca */
+    if (!(d === h.dia && m === h.mes) && (m === h.dia && d === h.mes)) { var t = d; d = m; m = t; }
+    var dt = new Date(Date.UTC(a, m - 1, d));
+    if (isNaN(dt)) return null;
+    return { ano: a, mes: m, dia: d, semana: dt.getUTCDay() };
+  };
+
+  var lerCSV = function (txt) {
+    var r = { data: "", arroz: [], acomp: [], espec: [] };
+    txt.split(/\r?\n/).forEach(function (linha) {
+      var cols = [], atual = "", aspas = false;
+      for (var k = 0; k < linha.length; k++) {
+        var ch = linha[k];
+        if (ch === '"') { if (aspas && linha[k + 1] === '"') { atual += '"'; k++; } else aspas = !aspas; }
+        else if (ch === "," && !aspas) { cols.push(atual); atual = ""; }
+        else atual += ch;
+      }
+      cols.push(atual);
+      var tipo = (cols[0] || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+      var item = (cols[1] || "").replace(/\*/g, "").trim();
+      if (!item || /^(tipo|item)$/i.test(item)) return;
+      if (tipo.indexOf("data") === 0) { if (/\d/.test(item) && !r.data) r.data = item; }
+      else if (tipo.indexOf("arroz") === 0) r.arroz.push(item);
+      else if (tipo.indexOf("acomp") === 0) r.acomp.push(item);
+      else if (tipo.indexOf("especia") === 0) r.espec.push(item);
+    });
+    return r;
+  };
+
+  var aplicar = function (r) {
+    var h = hojeCodo(), dt = r.data ? lerData(r.data) : null;
+    var arroz = r.arroz.map(function (a) { return /^(arroz|bai[aã]o)/i.test(a) ? a : "Arroz " + a; });
+    txAcomp.value = arroz.concat(r.acomp).join("\n");
+    txEspec.value = r.espec.join("\n");
+    selDia.value = dt ? dt.semana : h.semana;
+    dataArte = dt ? (dt.dia + "-" + dt.mes) : (h.dia + "-" + h.mes);
+    if (!arroz.length && !r.acomp.length) aviso("erro", "A planilha está sem linhas de Arroz ou Acompanhamento. Preencha a planilha ou escreva em “Ajustar antes de postar”.");
+    else if (dt && !(dt.dia === h.dia && dt.mes === h.mes)) aviso("atencao", "Atenção: a planilha está com a data " + r.data + " (" + DIAS[dt.semana] + "). Se for o cardápio de hoje, atualize a planilha e toque em “Buscar de novo”.");
+    else aviso("ok", "Pronto! Cardápio de " + DIAS[dt ? dt.semana : h.semana] + " carregado da planilha.");
+    desenhar();
+  };
+
+  var buscar = function () {
+    aviso("", "Carregando a planilha…");
+    if (/demo/.test(location.search)) {
+      return aplicar(lerCSV("Tipo,Item\nData," + (function (h) { return h.dia + "/" + h.mes + "/" + h.ano; })(hojeCodo()) +
+        "\nArroz,Branco\nArroz,de Cuxá\nArroz,de Macarrão\nAcompanhamento,Creme de galinha\nAcompanhamento,Feijão\nAcompanhamento,Macarrão\nAcompanhamento,Macaxeira\nAcompanhamento,Farofa\nAcompanhamento,Vinagrete\nEspecial,Arroz de carneiro\nEspecial,Arroz de carne seca cremoso"));
+    }
+    fetch(PLANILHA + "&t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function (t) { aplicar(lerCSV(t)); })
+      .catch(function (e) {
+        aviso("erro", "Não consegui abrir a planilha (" + (e && e.message || "sem internet?") + "). Você pode escrever o cardápio em “Ajustar antes de postar”.");
+        selDia.value = hojeCodo().semana; desenhar();
+      });
+  };
+
+  var linhas = function (t) { return t.split(/\n/).map(function (s) { return s.trim(); }).filter(Boolean); };
+
+  /* ====== DESENHO (medidas em pixels da arte 1080x1920) ====== */
+  var ESQ = 226, DIR = 894, CENTRO = 540, TOPO = 372, BASE = 1372;
+  var fonte = function (peso, px, fam) { ctx.font = peso + " " + px + "px " + (fam || "Poppins, sans-serif"); };
+  var escrever = function (texto, x, y, alinhar, maxL) {
+    ctx.textAlign = alinhar;
+    var w = ctx.measureText(texto).width;
+    if (w > maxL) { ctx.save(); ctx.translate(x, y); ctx.scale(maxL / w, 1); ctx.fillText(texto, 0, 0); ctx.restore(); }
+    else ctx.fillText(texto, x, y);
+  };
+
+  function desenhar() {
+    ctx.clearRect(0, 0, 1080, 1920);
+    if (fundo.complete && fundo.naturalWidth) ctx.drawImage(fundo, 0, 0, 1080, 1920);
+    else { ctx.fillStyle = "#15100d"; ctx.fillRect(0, 0, 1080, 1920); }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textBaseline = "alphabetic";
+    ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 8;
+
+    /* dia da semana manuscrito */
+    var dia = DIAS[+selDia.value] || "";
+    ctx.save();
+    ctx.fillStyle = "#e9a95c";
+    fonte("400", 118, "Allura, cursive");
+    ctx.textAlign = "left";
+    var wDia = ctx.measureText(dia).width, xDia = Math.min(620, 905 - wDia);
+    ctx.translate(xDia, 300); ctx.rotate(-0.06); ctx.fillText(dia, 0, 0);
+    ctx.restore();
+
+    var acomp = linhas(txAcomp.value).map(function (s) { return s.toUpperCase(); });
+    var espec = linhas(txEspec.value).map(function (s) { return s.toUpperCase(); });
+    var espetos = linhas(txEspetos.value).map(function (s) { return s.toUpperCase(); });
+
+    /* tamanho que cabe na moldura */
+    var nItens = acomp.length + espec.length + espetos.length;
+    var nTit = (acomp.length ? 1 : 0) + (espec.length ? 1 : 0) + (espetos.length ? 1 : 0);
+    var esc = 1;
+    for (; esc > 0.5; esc -= 0.02) {
+      var alt = nTit * 66 * esc + nItens * 57 * esc + (nTit - 1) * 40;
+      if (alt <= BASE - TOPO) break;
+    }
+    var passo = 57 * esc, tTit = 50 * esc, tItem = 38 * esc, hTit = 66 * esc;
+    var usado = nTit * hTit + nItens * passo;
+    var folga = nTit > 1 ? Math.min(150, (BASE - TOPO - usado) / (nTit - 1)) : 0;
+    var y = TOPO;
+
+    var titulo = function (t, x, al) { fonte("800", tTit); ctx.letterSpacing = "-1px"; y += hTit; escrever(t, x, y - 12 * esc, al, DIR - ESQ); ctx.letterSpacing = "0px"; };
+    var item = function (t, x, al) { fonte("300", tItem); y += passo; escrever(t, x, y - 8 * esc, al, DIR - ESQ); };
+
+    if (acomp.length) { titulo("ACOMPANHAMENTOS", ESQ, "left"); acomp.forEach(function (t) { item(t, ESQ, "left"); }); y += folga; }
+    if (espec.length) { titulo("ESPECIAIS", DIR, "right"); espec.forEach(function (t) { item(t, DIR, "right"); }); y += folga; }
+    if (espetos.length) { titulo("ESPETOS", CENTRO, "center"); espetos.forEach(function (t) { item(t, CENTRO, "center"); }); }
+    ctx.shadowBlur = 0;
+  }
+
+  var nomeArquivo = function () { return "cardapio-" + (DIAS[+selDia.value] || "dia").normalize("NFD").replace(/[̀-ͯ]/g, "") + "-" + dataArte + ".jpg"; };
+  var gerar = function (cb) { cv.toBlob(function (b) { cb(b); }, "image/jpeg", 0.92); };
+
+  el("baixar").onclick = function () {
+    gerar(function (b) {
+      var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nomeArquivo();
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    });
+  };
+  el("compartilhar").onclick = function () {
+    gerar(function (b) {
+      var arq = new File([b], nomeArquivo(), { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [arq] })) {
+        navigator.share({ files: [arq] }).catch(function () {});
+      } else {
+        aviso("atencao", "Este navegador não deixa compartilhar direto. Use “Baixar imagem” e poste pela galeria.");
+      }
+    });
+  };
+  el("recarregar").onclick = buscar;
+  [selDia, txAcomp, txEspec, txEspetos].forEach(function (c) { c.addEventListener("input", desenhar); });
+
+  fundo.onload = desenhar;
+  fundo.src = FUNDO;
+  var fontes = ["300 38px Poppins", "800 50px Poppins", "118px Allura"].map(function (f) { return document.fonts ? document.fonts.load(f, "AÇÃO") : null; });
+  Promise.all(fontes).catch(function () {}).then(function () { desenhar(); buscar(); });
+})();
+</script>
+</body>
+</html>
