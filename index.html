@@ -574,7 +574,7 @@ window.CONFIG = {
   // O site lê a PLANILHA DO GOOGLE abaixo. Cole aqui o link de "Publicar na Web" (formato CSV).
   // Se a planilha não abrir, o site usa as listas de reserva logo abaixo (pode deixar vazias).
   cardapioDoDia: {
-    planilha: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTswUIMM3Dzj6SmzZRIe4CQkpcojGLVb1vgRgk_CAp1X-hTzHjrhEJmn9TcG8qZBbMa_3tZcU3VA70r/pub?gid=0&single=true&output=csv",
+    planilha: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_vI3T0VtWS7_ls5gIERm5r9D0aC4PN4vOoygR4eT4vsrUaQ5mvRP93ACOJ1IDP8ams0jPAp1xRQhN/pub?gid=0&single=true&output=csv",
     reserva: { data: "", arroz: [], acompanhamentos: [], especiais: [] }
   },
 
@@ -1177,7 +1177,7 @@ window.CONFIG = {
       if (!opcoes && it.pratoDoDia && doDia && doDia.arroz.length) {
         opcoes = { titulo: "Arroz", lista: doDia.arroz };
         acompDia = doDia.acompanhamentos;
-        if (acompDia.length) form.appendChild(el("p", "item__desc", "Acompanha: " + acompDia.join(", ") + "."));
+
       } else if (it.pratoDoDia && !doDia) {
         form.appendChild(el("p", "item__desc", "O arroz e os acompanhamentos mudam todo dia. Se quiser, escreva sua preferência na observação."));
       }
@@ -1186,6 +1186,11 @@ window.CONFIG = {
         opcoes.lista.forEach(function (o, i) { gOp.appendChild(opcao("radio", "op", o, o, "", i === 0)); });
         form.appendChild(gOp);
       }
+      if (acompDia.length) {
+        var gAc = grupo("Acompanhamentos", "(já vêm todos · desmarque o que não quiser)");
+        acompDia.forEach(function (a) { gAc.appendChild(opcao("checkbox", "acomp", a, a, "", true)); });
+        form.appendChild(gAc);
+      }
       calcular = function () {
         var det = [], unit = it.preco, nome = it.nome;
         if (it.tamanhos) {
@@ -1193,7 +1198,12 @@ window.CONFIG = {
           unit = t.preco; nome += " (" + t.nome + ")";
         }
         if (opcoes) det.push((opcoes.titulo || "Escolha") + ": " + ler("op")[0]);
-        if (acompDia.length) det.push("Acompanhamentos do dia: " + acompDia.join(", "));
+        if (acompDia.length) {
+          var comAc = ler("acomp");
+          var semAc = acompDia.filter(function (a) { return comAc.indexOf(a) === -1; });
+          det.push(comAc.length ? "Acompanhamentos: " + comAc.join(", ") : "Sem acompanhamentos");
+          if (semAc.length && comAc.length) det.push("SEM: " + semAc.join(", "));
+        }
         return { nome: nome, unit: unit, detalhes: det, ok: true };
       };
     }
