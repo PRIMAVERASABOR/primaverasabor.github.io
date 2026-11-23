@@ -351,6 +351,21 @@ body.travado { overflow: hidden; }
   box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
+.status {
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin: 1rem 0 0; padding: .45rem .9rem;
+  border-radius: 999px; font-weight: 700; font-size: .95rem;
+  background: rgba(255, 255, 255, .12); color: #fff;
+}
+.status__ponto { width: .6rem; height: .6rem; border-radius: 50%; background: #9aa5a0; flex: none; }
+.status--aberto .status__ponto { background: #3ddc84; box-shadow: 0 0 0 4px rgba(61, 220, 132, .25); }
+.status--fechado .status__ponto { background: #ff6b5b; }
+.aviso-fechado {
+  margin: 0 0 1rem; padding: .875rem 1rem; border-radius: .75rem;
+  background: #FFF4E0; color: #5A3B00; border: 1.5px solid var(--cor-destaque);
+  font-size: .95rem; line-height: 1.45;
+}
+.aviso-fechado strong { display: block; margin-bottom: .15rem; }
 .barra-carrinho__valor { color: var(--cor-destaque); white-space: nowrap; }
 
 .pedir { border: 0; font-size: 1rem; cursor: pointer; font-family: var(--fonte-texto); }
@@ -457,6 +472,7 @@ textarea.campo { min-height: 4.5rem; resize: vertical; }
       <div class="logo" id="logo"></div>
       <h1 id="nome">Nome do Restaurante</h1>
       <p class="slogan" id="slogan"></p>
+      <p class="status" id="status" hidden><span class="status__ponto"></span><span id="status-texto"></span></p>
 
       <nav class="acoes" aria-label="Ações principais">
         <a class="btn btn--principal" id="btn-cardapio" href="#cardapio">Fazer pedido</a>
@@ -540,6 +556,16 @@ window.CONFIG = {
   // Endereço e horário (aparecem na seção "Onde estamos", com o mapa)
   endereco: "Rua Nazeu Quadros, 06, Bairro São Sebastião, Codó - MA",
   horario: "Segunda a sábado, das 18h às 23h",
+
+  // Aviso "Aberto agora / Fechado" (usa sempre o horário de Codó, não o do celular do cliente)
+  // dias: 0 = domingo, 1 = segunda ... 6 = sábado. Horas no formato "18:00".
+  // Para fechar num dia especial (feriado), coloque a data em "fechadoEm": ["2026-12-25"]
+  funcionamento: {
+    dias: [1, 2, 3, 4, 5, 6],
+    abre: "18:00",
+    fecha: "23:00",
+    fechadoEm: []
+  },
   // Ponto exato no mapa (latitude, longitude), tirado do link do Google Maps do restaurante
   coordenadas: "-4.464623,-43.881666",
 
@@ -775,6 +801,47 @@ window.CONFIG = {
 
   var c = window.CONFIG || {};
   var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- Aberto agora / Fechado ---------- */
+  var NOMES_DIA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+  var minutos = function (hhmm) { var p = String(hhmm || "0:0").split(":"); return (+p[0]) * 60 + (+p[1] || 0); };
+  var horaTexto = function (hhmm) { var p = String(hhmm).split(":"); return (+p[0]) + "h" + (+p[1] ? p[1] : ""); };
+  /* hora de Codó-MA (UTC-3, sem horário de verão), qualquer que seja o fuso do celular */
+  var agoraCodo = function () {
+    var d = new Date(Date.now() - 3 * 3600 * 1000);
+    return { dia: d.getUTCDay(), min: d.getUTCHours() * 60 + d.getUTCMinutes(),
+             data: d.toISOString().slice(0, 10), ms: d.getTime() };
+  };
+  var dataMais = function (ms, n) { return new Date(ms + n * 86400000).toISOString().slice(0, 10); };
+  var situacao = function () {
+    var f = c.funcionamento;
+    if (!f || !f.dias || !f.abre || !f.fecha) return null;
+    var a = minutos(f.abre), z = minutos(f.fecha), h = agoraCodo();
+    var fechadoEm = f.fechadoEm || [];
+    var abreNoDia = function (n) {
+      var dia = (h.dia + n) % 7;
+      return f.dias.indexOf(dia) > -1 && fechadoEm.indexOf(dataMais(h.ms, n)) === -1;
+    };
+    if (abreNoDia(0) && h.min >= a && h.min < z) {
+      return { aberto: true, texto: "Aberto agora · até " + horaTexto(f.fecha) };
+    }
+    for (var n = 0; n <= 7; n++) {
+      if (!abreNoDia(n) || (n === 0 && h.min >= a)) continue;
+      var quando = n === 0 ? "hoje" : n === 1 ? "amanhã" : NOMES_DIA[(h.dia + n) % 7];
+      return { aberto: false, quando: quando + " às " + horaTexto(f.abre),
+               texto: "Fechado agora · abrimos " + quando + " às " + horaTexto(f.abre) };
+    }
+    return { aberto: false, quando: "", texto: "Fechado agora" };
+  };
+  var mostrarStatus = function () {
+    var s = situacao(), box = $("status");
+    if (!s || !box) return;
+    box.hidden = false;
+    box.className = "status " + (s.aberto ? "status--aberto" : "status--fechado");
+    $("status-texto").textContent = s.texto;
+  };
+  mostrarStatus();
+  setInterval(mostrarStatus, 60000);
 
   /* Cores */
   var raiz = document.documentElement.style;
@@ -1131,6 +1198,16 @@ window.CONFIG = {
     abrirFolha("Seu pedido");
     var corpo = folhaCorpo;
 
+    var sit = situacao();
+    if (sit && !sit.aberto) {
+      var aviso = el("div", "aviso-fechado");
+      aviso.appendChild(el("strong", null, "Estamos fechados agora."));
+      aviso.appendChild(document.createTextNode(
+        "Você pode enviar o pedido mesmo assim: ele será preparado quando abrirmos" +
+        (sit.quando ? " (" + sit.quando + ")" : "") + ". " + (c.horario ? "Funcionamos " + c.horario.charAt(0).toLowerCase() + c.horario.slice(1) + "." : "")));
+      corpo.appendChild(aviso);
+    }
+
     var lista = el("div");
     corpo.appendChild(lista);
     var desenharItens = function () {
@@ -1240,6 +1317,8 @@ window.CONFIG = {
       var sep = "------------------------------";
       var L = [];
       L.push("*Novo pedido · " + (c.nome || "") + "*");
+      var sitMsg = situacao();
+      if (sitMsg && !sitMsg.aberto) L.push("⏰ _Pedido feito com a casa fechada, para quando abrir_");
       L.push(sep);
       L.push("👤 *Cliente:* " + nome.value.trim());
       if (entrega) {
