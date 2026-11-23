@@ -1549,14 +1549,20 @@ window.CONFIG = {
       };
 
       /* só vale se for de hoje (quando a data for preenchida) */
+      var motivo = "";
       var valido = function (d) {
-        if (!d || !(d.arroz.length || d.acompanhamentos.length)) return null;
+        if (!d || !(d.arroz.length || d.acompanhamentos.length)) { motivo = "a planilha não tem linhas de Arroz ou Acompanhamento"; return null; }
         if (d.data) {
           var hoje = agoraCodo().data; /* AAAA-MM-DD */
-          var p = String(d.data).trim().split(/[\/\-.]/);
-          var iso = p.length === 3 ? (p[0].length === 4 ? p[0] + "-" + p[1] + "-" + p[2] : p[2] + "-" + p[1] + "-" + p[0]) : "";
-          iso = iso.replace(/-(\d)(?=-|$)/g, "-0$1");
-          if (iso !== hoje) return null;
+          var p = String(d.data).trim().split(" ")[0].split(/[\/\-.]/);
+          if (p.length !== 3) { motivo = "data da planilha não reconhecida: " + d.data; return null; }
+          var dois = function (x) { x = String(+x); return x.length < 2 ? "0" + x : x; };
+          var ano = function (x) { return x.length === 2 ? "20" + x : x; };
+          var opcoesData = p[0].length === 4
+            ? [ano(p[0]) + "-" + dois(p[1]) + "-" + dois(p[2])]
+            : [ano(p[2]) + "-" + dois(p[1]) + "-" + dois(p[0]),   /* dia/mês/ano */
+               ano(p[2]) + "-" + dois(p[0]) + "-" + dois(p[1])];  /* mês/dia/ano (planilha em inglês) */
+          if (opcoesData.indexOf(hoje) === -1) { motivo = "a data na planilha é " + d.data + " e hoje é " + hoje.split("-").reverse().join("/"); return null; }
         }
         return d;
       };
@@ -1581,16 +1587,24 @@ window.CONFIG = {
         });
         return d;
       };
+      /* abra o site com ?teste no fim do endereço para ver o motivo */
+      var diagnostico = function () {
+        if (!/teste|debug/.test(location.search) || !motivo) return;
+        box.appendChild(criar("p", "do-dia__sub", "Diagnóstico: " + motivo + "."));
+      };
       var reserva = function () {
-        var r = dd.reserva || {};
-        return valido({ data: r.data || "", arroz: r.arroz || [], acompanhamentos: r.acompanhamentos || [], especiais: r.especiais || [] });
+        var r = dd.reserva || {}, antes = motivo;
+        if (!(r.arroz || []).length && !(r.acompanhamentos || []).length) return null;
+        var res = valido({ data: r.data || "", arroz: r.arroz || [], acompanhamentos: r.acompanhamentos || [], especiais: r.especiais || [] });
+        motivo = antes || motivo;
+        return res;
       };
       if (dd.planilha && window.fetch) {
         var url = dd.planilha + (dd.planilha.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now();
         fetch(url, { cache: "no-store" })
           .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
-          .then(function (txt) { desenhar(valido(lerCSV(txt)) || reserva()); })
-          .catch(function () { desenhar(reserva()); });
+          .then(function (txt) { desenhar(valido(lerCSV(txt)) || reserva()); diagnostico(); })
+          .catch(function (err) { motivo = "não consegui abrir a planilha (" + (err && err.message || "erro") + ")"; desenhar(reserva()); diagnostico(); });
       } else {
         desenhar(reserva());
       }
