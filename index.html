@@ -179,6 +179,14 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
 .btn--contorno  { border-color: rgba(255, 255, 255, .7); color: #fff; }
 .hero__oque { margin: .5rem 0 0; font-weight: 700; font-size: 1.0625rem; color: var(--cor-destaque); }
 .hero__entrega { margin: .5rem 0 0; font-size: .9375rem; opacity: .9; }
+.selo-aval {
+  display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: .35rem;
+  margin: .75rem auto 0; padding: .4rem .9rem; border-radius: 999px;
+  background: rgba(255, 255, 255, .1); color: #fff; text-decoration: none;
+  font-size: .85rem; font-weight: 600; line-height: 1.3;
+}
+.selo-aval__estrelas { color: var(--cor-destaque); letter-spacing: .08em; }
+.selo-aval u { text-decoration-color: var(--cor-destaque); text-underline-offset: 3px; }
 .hero__horario { margin: .75rem 0 0; font-weight: 700; font-size: 1rem; color: var(--cor-destaque); }
 .insta { margin-top: 1.25rem; display: inline-flex; align-items: center; gap: .5rem; color: #fff; opacity: .85; text-decoration: none; font-size: .9375rem; padding: .5rem; }
 .insta[hidden] { display: none; }
@@ -527,6 +535,8 @@ textarea.campo { min-height: 4.5rem; resize: vertical; }
       <p class="hero__entrega">🛵 Delivery a partir de R$ 6 · Pix e cartão</p>
       <p class="hero__horario" id="horario-topo">🕕 Segunda a sábado, das 18h às 23h</p>
       <p class="status" id="status" hidden><span class="status__ponto"></span><span id="status-texto"></span></p>
+
+      <a class="selo-aval" href="#avaliacoes"><span class="selo-aval__estrelas" aria-hidden="true">★★★★★</span> Avaliações dos clientes · <u>Avalie</u></a>
 
       <nav class="acoes" aria-label="Ações principais">
         <a class="btn btn--principal" id="btn-cardapio" href="#cardapio">Fazer pedido</a>
