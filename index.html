@@ -334,6 +334,118 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
 .local__mapa iframe { display: block; width: 100%; height: 280px; border: 0; }
 .local .btn { width: 100%; }
 
+/* ---------- Carrinho de pedidos ---------- */
+body.tem-carrinho { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+body.travado { overflow: hidden; }
+
+.barra-carrinho {
+  position: fixed; z-index: 20;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(.75rem + env(safe-area-inset-bottom));
+  width: min(calc(100% - 1.5rem), 38rem);
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  min-height: 3.75rem; padding: 0 1.25rem;
+  border: 0; border-radius: 999px;
+  background: var(--cor-principal); color: #fff;
+  font: 700 1.0625rem/1.2 var(--fonte-texto);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.barra-carrinho__valor { color: var(--cor-destaque); white-space: nowrap; }
+
+.pedir { border: 0; font-size: 1rem; cursor: pointer; font-family: var(--fonte-texto); }
+
+.folha { position: fixed; inset: 0; z-index: 30; display: flex; align-items: flex-end; justify-content: center; }
+.folha__fundo { position: absolute; inset: 0; background: rgba(10, 20, 15, .55); }
+.folha__caixa {
+  position: relative;
+  width: min(100%, 36rem);
+  max-height: 92svh;
+  display: flex; flex-direction: column;
+  background: #fff; color: var(--cor-texto);
+  border-radius: 1.25rem 1.25rem 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, .2);
+}
+@media (min-width: 700px) {
+  .folha { align-items: center; }
+  .folha__caixa { border-radius: 1.25rem; max-height: 88vh; }
+}
+.folha__topo {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  padding: 1.125rem 1.25rem .75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--cor-texto) 12%, transparent);
+}
+.folha__topo h2 { font-size: 1.375rem; line-height: 1.2; color: var(--cor-principal); }
+.fechar {
+  flex: none; width: 2.5rem; height: 2.5rem; border: 0; border-radius: 50%;
+  background: color-mix(in srgb, var(--cor-texto) 8%, transparent);
+  color: var(--cor-texto); font-size: 1.5rem; line-height: 1; cursor: pointer;
+}
+.folha__corpo { overflow-y: auto; padding: .5rem 1.25rem 1rem; -webkit-overflow-scrolling: touch; }
+.folha__rodape {
+  padding: .875rem 1.25rem calc(.875rem + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in srgb, var(--cor-texto) 12%, transparent);
+}
+.folha__rodape .btn { width: 100%; border: 0; cursor: pointer; }
+.folha__rodape .btn + .btn { margin-top: .625rem; }
+.btn--verde { background: var(--cor-principal); color: #fff; }
+
+.grupo { border: 0; margin: 0; padding: 1.125rem 0 0; min-width: 0; }
+.grupo legend { float: left; width: 100%; }
+.grupo legend + * { clear: both; }
+.grupo legend, .rotulo {
+  display: block; padding: 0; margin-bottom: .5rem;
+  font-weight: 700; color: var(--cor-principal);
+}
+.grupo__dica { font-weight: 400; font-size: .875rem; color: color-mix(in srgb, var(--cor-texto) 65%, transparent); }
+.opcao {
+  display: flex; align-items: center; gap: .75rem;
+  min-height: 3rem; padding: .5rem .875rem; margin-bottom: .5rem;
+  border: 1.5px solid color-mix(in srgb, var(--cor-texto) 18%, transparent);
+  border-radius: .75rem; cursor: pointer;
+}
+.opcao:has(input:checked) { border-color: var(--cor-principal); background: color-mix(in srgb, var(--cor-principal) 7%, #fff); }
+.opcao input { width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--cor-principal); flex: none; }
+.opcao span { flex: 1; }
+.opcao small { color: color-mix(in srgb, var(--cor-texto) 65%, transparent); font-size: .875rem; white-space: nowrap; }
+
+.campo {
+  width: 100%; min-height: 3rem; padding: .625rem .875rem;
+  border: 1.5px solid color-mix(in srgb, var(--cor-texto) 25%, transparent);
+  border-radius: .75rem; background: #fff; color: var(--cor-texto);
+  font: 400 1rem/1.4 var(--fonte-texto);
+}
+textarea.campo { min-height: 4.5rem; resize: vertical; }
+.campo + .campo { margin-top: .5rem; }
+
+.qtd { display: inline-flex; align-items: center; gap: .25rem; }
+.qtd button {
+  width: 2.5rem; height: 2.5rem; border-radius: 50%;
+  border: 1.5px solid var(--cor-principal); background: #fff; color: var(--cor-principal);
+  font: 700 1.25rem/1 var(--fonte-texto); cursor: pointer;
+}
+.qtd output { min-width: 2rem; text-align: center; font-weight: 700; }
+
+.linha-item { padding: .875rem 0; border-bottom: 1px solid color-mix(in srgb, var(--cor-texto) 12%, transparent); }
+.linha-item__topo { display: flex; justify-content: space-between; gap: .75rem; font-weight: 700; }
+.linha-item ul { margin: .25rem 0 0; padding-left: 1.1rem; font-size: .9rem; color: color-mix(in srgb, var(--cor-texto) 75%, transparent); }
+.linha-item__acoes { margin-top: .5rem; display: flex; justify-content: flex-end; }
+
+.resumo { margin: 1rem 0 0; padding: .875rem 1rem; border-radius: .75rem; background: var(--cor-fundo); }
+.resumo p { margin: 0; display: flex; justify-content: space-between; gap: 1rem; }
+.resumo p + p { margin-top: .25rem; }
+.resumo .total { font-weight: 700; font-size: 1.125rem; color: var(--cor-principal); }
+
+.erro { margin: .75rem 0 0; color: #B3261E; font-weight: 600; font-size: .95rem; }
+.aviso-ok { text-align: center; padding: 1.5rem 0 .5rem; }
+.aviso-ok p { margin: .5rem 0 0; }
+
+.pix { margin-top: 1rem; padding: 1rem; border-radius: .75rem; border: 1.5px solid var(--cor-principal); background: color-mix(in srgb, var(--cor-principal) 6%, #fff); text-align: left; }
+.pix__titulo { margin: 0 0 .5rem; font-weight: 700; font-size: 1.125rem; color: var(--cor-principal); }
+.pix__codigo { font: 400 .8rem/1.35 ui-monospace, monospace; word-break: break-all; margin-bottom: .625rem; }
+.pix .btn { width: 100%; border: 0; cursor: pointer; }
+.pix__dica { margin: .625rem 0 0; font-size: .875rem; color: color-mix(in srgb, var(--cor-texto) 75%, transparent); }
+
 </style>
 </head>
 <body>
@@ -347,8 +459,8 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
       <p class="slogan" id="slogan"></p>
 
       <nav class="acoes" aria-label="Ações principais">
-        <a class="btn btn--principal" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Pedir pelo WhatsApp</a>
-        <a class="btn btn--branco" id="btn-cardapio" href="#cardapio">Ver cardápio</a>
+        <a class="btn btn--principal" id="btn-cardapio" href="#cardapio">Fazer pedido</a>
+        <a class="btn btn--branco" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
         <a class="btn btn--contorno" id="btn-instagram" href="#" target="_blank" rel="noopener">Instagram</a>
       </nav>
     </div>
@@ -379,6 +491,19 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
       <a class="btn btn--principal" id="btn-rota" href="#" target="_blank" rel="noopener">Como chegar</a>
     </section>
   </main>
+
+  <!-- Carrinho: barra de baixo e janela de pedido -->
+  <button class="barra-carrinho" id="barra-carrinho" type="button" hidden>
+    <span id="barra-qtd">Ver pedido</span><span class="barra-carrinho__valor" id="barra-valor"></span>
+  </button>
+  <div class="folha" id="folha" hidden>
+    <div class="folha__fundo" data-fechar></div>
+    <div class="folha__caixa" role="dialog" aria-modal="true" aria-labelledby="folha-titulo">
+      <div class="folha__topo"><h2 id="folha-titulo"></h2><button class="fechar" type="button" data-fechar aria-label="Fechar">×</button></div>
+      <div class="folha__corpo" id="folha-corpo"></div>
+      <div class="folha__rodape" id="folha-rodape"></div>
+    </div>
+  </div>
 
   <footer class="rodape">
     <p id="rodape"></p>
@@ -446,10 +571,10 @@ window.CONFIG = {
         { nome: "Espetinho tira-gosto", descricao: "Farofa e vinagrete.", preco: 18, foto: "", destaque: false },
         { nome: "Creme de galinha", descricao: "", preco: 15, foto: "", destaque: false },
         { nome: "Carne de sol do sertão", descricao: "Carne de sol, macaxeira, farofa e vinagrete.", preco: 39, foto: "", destaque: false },
-        { nome: "Risoto de camarão", descricao: "", preco: "P R$ 35,00 · G R$ 45,00", foto: "", destaque: false },
-        { nome: "Baião cremoso", descricao: "", preco: "P R$ 18,00 · G R$ 30,00", foto: "", destaque: false },
-        { nome: "Arroz de carne seca cremoso", descricao: "", preco: "P R$ 25,00 · G R$ 35,00", foto: "", destaque: false },
-        { nome: "Arroz de carneiro", descricao: "", preco: "P R$ 35,00 · G R$ 45,00", foto: "", destaque: false },
+        { nome: "Risoto de camarão", descricao: "", preco: "", tamanhos: [{ nome: "P", preco: 35 }, { nome: "G", preco: 45 }], foto: "", destaque: false },
+        { nome: "Baião cremoso", descricao: "", preco: "", tamanhos: [{ nome: "P", preco: 18 }, { nome: "G", preco: 30 }], foto: "", destaque: false },
+        { nome: "Arroz de carne seca cremoso", descricao: "", preco: "", tamanhos: [{ nome: "P", preco: 25 }, { nome: "G", preco: 35 }], foto: "", destaque: false },
+        { nome: "Arroz de carneiro", descricao: "", preco: "", tamanhos: [{ nome: "P", preco: 35 }, { nome: "G", preco: 45 }], foto: "", destaque: false },
         { nome: "Filé à moda Primavera", descricao: "Filé em tiras, molho rosé, farofa e vinagrete.", preco: 49, foto: "", destaque: false },
         { nome: "Frango dourado", descricao: "Frango com queijo, farofa, macaxeira e vinagrete.", preco: 35, foto: "", destaque: false },
         { nome: "Filé dourado", descricao: "Filé com queijo, farofa, macaxeira e vinagrete.", preco: 39, foto: "", destaque: false },
@@ -478,48 +603,48 @@ window.CONFIG = {
         { nome: "Espetinho de porco", descricao: "Tradicional.", preco: 25, foto: "", destaque: false },
         { nome: "Espetinho de toscana", descricao: "Tradicional.", preco: 25, foto: "", destaque: false },
         { nome: "Espetinho de picanha", descricao: "Tradicional.", preco: 49, foto: "", destaque: false },
-        { nome: "Especial com arroz cremoso (boi, frango, porco ou toscana)", descricao: "Acompanha baião cremoso, arroz de carne seca cremoso ou arroz de cuxá com camarão.", preco: 39, foto: "", destaque: false },
-        { nome: "Especial com arroz cremoso (picanha)", descricao: "Acompanha baião cremoso, arroz de carne seca cremoso ou arroz de cuxá com camarão.", preco: 55, foto: "", destaque: false },
-        { nome: "Especial com risoto de camarão ou arroz de carneiro (boi, frango ou porco)", descricao: "", preco: 49, foto: "", destaque: false },
-        { nome: "Especial com risoto de camarão ou arroz de carneiro (toscana)", descricao: "", preco: 45, foto: "", destaque: false },
-        { nome: "Especial com risoto de camarão ou arroz de carneiro (picanha)", descricao: "", preco: 69, foto: "", destaque: false }
+        { nome: "Especial com arroz cremoso (boi, frango, porco ou toscana)", descricao: "Acompanha baião cremoso, arroz de carne seca cremoso ou arroz de cuxá com camarão.", preco: 39, foto: "", destaque: false, opcoes: { titulo: "Espetinho e acompanhamento", lista: ["Boi · Baião cremoso", "Boi · Arroz de carne seca", "Boi · Arroz de cuxá com camarão", "Frango · Baião cremoso", "Frango · Arroz de carne seca", "Frango · Arroz de cuxá com camarão", "Porco · Baião cremoso", "Porco · Arroz de carne seca", "Porco · Arroz de cuxá com camarão", "Toscana · Baião cremoso", "Toscana · Arroz de carne seca", "Toscana · Arroz de cuxá com camarão"] } },
+        { nome: "Especial com arroz cremoso (picanha)", descricao: "Acompanha baião cremoso, arroz de carne seca cremoso ou arroz de cuxá com camarão.", preco: 55, foto: "", destaque: false, opcoes: { titulo: "Acompanhamento", lista: ["Baião cremoso", "Arroz de carne seca cremoso", "Arroz de cuxá com camarão"] } },
+        { nome: "Especial com risoto de camarão ou arroz de carneiro (boi, frango ou porco)", descricao: "", preco: 49, foto: "", destaque: false, opcoes: { titulo: "Espetinho e acompanhamento", lista: ["Boi · Risoto de camarão", "Boi · Arroz de carneiro", "Frango · Risoto de camarão", "Frango · Arroz de carneiro", "Porco · Risoto de camarão", "Porco · Arroz de carneiro"] } },
+        { nome: "Especial com risoto de camarão ou arroz de carneiro (toscana)", descricao: "", preco: 45, foto: "", destaque: false, opcoes: { titulo: "Acompanhamento", lista: ["Risoto de camarão", "Arroz de carneiro"] } },
+        { nome: "Especial com risoto de camarão ou arroz de carneiro (picanha)", descricao: "", preco: 69, foto: "", destaque: false, opcoes: { titulo: "Acompanhamento", lista: ["Risoto de camarão", "Arroz de carneiro"] } }
       ]
     },
     {
       categoria: "Pizzas",
       itens: [
-        { nome: "Tamanhos e preços", descricao: "Mesmo preço para todos os sabores. P (4 fatias) R$ 39 · M (6) R$ 49 · G (8) R$ 59 · GG (12) R$ 69 · Quadrada (20) R$ 98.", preco: "", foto: "", destaque: false, pedir: false },
-        { nome: "Carne seca", descricao: "Mussarela, carne seca, molho de tomate, azeitona, orégano e queijo coalho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Carne seca com catupiry", descricao: "Mussarela, carne seca, molho de tomate, catupiry, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Carne seca com cheddar", descricao: "Mussarela, carne seca, molho de tomate, cheddar, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Frango", descricao: "Mussarela, frango, molho de tomate, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Frango com catupiry", descricao: "Mussarela, frango, molho de tomate, catupiry, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Frango com cheddar", descricao: "Mussarela, frango, molho de tomate, cheddar, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Calabresa", descricao: "Mussarela, calabresa, molho de tomate, azeitona, orégano, pimenta biquinho e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Calabresa com catupiry", descricao: "Mussarela, calabresa, molho de tomate, catupiry, azeitona, orégano, pimenta biquinho e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Calabresa com cheddar", descricao: "Mussarela, calabresa, molho de tomate, cheddar, azeitona, orégano, pimenta biquinho e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Mussarela", descricao: "Mussarela, molho de tomate, tomate em rodelas, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "À moda", descricao: "Mussarela, frango, molho de tomate, catupiry, cheddar, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Portuguesa", descricao: "Mussarela, presunto, ovo, pimentão, tomate, cebola, catupiry, azeitona e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Mista", descricao: "Mussarela, calabresa, presunto, bacon, tomate, cebola, milho, catupiry e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Bacon", descricao: "Mussarela, bacon, catupiry, milho, cebola e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Mistura nordestina", descricao: "Mussarela, carne seca, frango, bacon, cebola, pimentão e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Crocante", descricao: "Calabresa, mussarela, batata palha, pimentão e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "3 queijos", descricao: "Mussarela, catupiry, cheddar, molho de tomate, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Mexicana", descricao: "Mussarela, calabresa, pimenta calabresa, molho de tomate e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Caipira", descricao: "Mussarela, frango, milho, molho de tomate, orégano e tomate.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Romeu e Julieta", descricao: "Mussarela, goiabada e leite condensado.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Banana com canela", descricao: "Mussarela, banana, leite condensado e canela.", preco: "a partir de R$ 39,00", foto: "", destaque: false },
-        { nome: "Borda recheada", descricao: "Catupiry, cheddar ou mussarela. Valor fixo para todos os tamanhos.", preco: 6, foto: "", destaque: false },
-        { nome: "Borda especial", descricao: "Catupiry com carne seca ou cheddar com carne seca. Valor fixo para todos os tamanhos.", preco: 8, foto: "", destaque: false },
+        { nome: "Tamanhos e preços", descricao: "Mesmo preço para todos os sabores. P (4 fatias, 1 sabor) R$ 39 · M (6, até 2 sabores) R$ 49 · G (8, até 2) R$ 59 · GG (12, até 3) R$ 69 · Quadrada (20, até 4) R$ 98. Toque em Adicionar em qualquer sabor para montar a sua.", preco: "", foto: "", destaque: false, pedir: false },
+        { nome: "Carne seca", descricao: "Mussarela, carne seca, molho de tomate, azeitona, orégano e queijo coalho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Carne seca com catupiry", descricao: "Mussarela, carne seca, molho de tomate, catupiry, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Carne seca com cheddar", descricao: "Mussarela, carne seca, molho de tomate, cheddar, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Frango", descricao: "Mussarela, frango, molho de tomate, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Frango com catupiry", descricao: "Mussarela, frango, molho de tomate, catupiry, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Frango com cheddar", descricao: "Mussarela, frango, molho de tomate, cheddar, azeitona, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Calabresa", descricao: "Mussarela, calabresa, molho de tomate, azeitona, orégano, pimenta biquinho e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Calabresa com catupiry", descricao: "Mussarela, calabresa, molho de tomate, catupiry, azeitona, orégano, pimenta biquinho e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Calabresa com cheddar", descricao: "Mussarela, calabresa, molho de tomate, cheddar, azeitona, orégano, pimenta biquinho e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Mussarela", descricao: "Mussarela, molho de tomate, tomate em rodelas, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "À moda", descricao: "Mussarela, frango, molho de tomate, catupiry, cheddar, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Portuguesa", descricao: "Mussarela, presunto, ovo, pimentão, tomate, cebola, catupiry, azeitona e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Mista", descricao: "Mussarela, calabresa, presunto, bacon, tomate, cebola, milho, catupiry e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Bacon", descricao: "Mussarela, bacon, catupiry, milho, cebola e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Mistura nordestina", descricao: "Mussarela, carne seca, frango, bacon, cebola, pimentão e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Crocante", descricao: "Calabresa, mussarela, batata palha, pimentão e cebola.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "3 queijos", descricao: "Mussarela, catupiry, cheddar, molho de tomate, orégano e pimenta biquinho.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Mexicana", descricao: "Mussarela, calabresa, pimenta calabresa, molho de tomate e orégano.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Caipira", descricao: "Mussarela, frango, milho, molho de tomate, orégano e tomate.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Romeu e Julieta", descricao: "Mussarela, goiabada e leite condensado.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Banana com canela", descricao: "Mussarela, banana, leite condensado e canela.", preco: "a partir de R$ 39,00", foto: "", destaque: false, pizza: true },
+        { nome: "Borda recheada", descricao: "Catupiry, cheddar ou mussarela. Valor fixo para todos os tamanhos. Escolha ao adicionar a pizza.", preco: 8, foto: "", destaque: false, pedir: false },
+        { nome: "Borda especial", descricao: "Catupiry com carne seca ou cheddar com carne seca. Valor fixo para todos os tamanhos. Escolha ao adicionar a pizza.", preco: 8, foto: "", destaque: false, pedir: false },
         { nome: "Tipos de massa", descricao: "Tradicional, vulcão, pãozinho ou camarão.", preco: "", foto: "", destaque: false, pedir: false }
       ]
     },
     {
       categoria: "Esfirras",
       itens: [
-        { nome: "Esfirra tradicional", descricao: "Mussarela, calabresa, frango, carne seca, 3 queijos, presunto ou bacon.", preco: 5, foto: "", destaque: false },
-        { nome: "Esfirra especial (doce)", descricao: "Romeu e Julieta, Nutella com M&Ms ou leite condensado.", preco: 6, foto: "", destaque: false },
+        { nome: "Esfirra tradicional", descricao: "Mussarela, calabresa, frango, carne seca, 3 queijos, presunto ou bacon.", preco: 5, foto: "", destaque: false, opcoes: { titulo: "Sabor", lista: ["Mussarela", "Calabresa", "Frango", "Carne seca", "3 queijos", "Presunto", "Bacon"] } },
+        { nome: "Esfirra especial (doce)", descricao: "Romeu e Julieta, Nutella com M&Ms ou leite condensado.", preco: 6, foto: "", destaque: false, opcoes: { titulo: "Sabor", lista: ["Romeu e Julieta", "Nutella com M&Ms", "Leite condensado"] } },
         { nome: "Combo 8 esfirras", descricao: "Cada esfirra doce no combo acrescenta R$ 0,50.", preco: 37, foto: "", destaque: false }
       ]
     },
@@ -570,8 +695,8 @@ window.CONFIG = {
     {
       categoria: "Sucos e refrigerantes",
       itens: [
-        { nome: "Suco natural", descricao: "Acerola, goiaba, abacaxi, abacaxi com hortelã, cajá, maracujá, bacuri ou morango. Adicional de leite: R$ 1,50.", preco: 10, foto: "", destaque: false },
-        { nome: "Refrigerante lata", descricao: "Coca-Cola, Coca-Cola Zero, Fanta Laranja, Fanta Uva, Guaraná Antarctica, Pepsi, Pepsi Black, Guaraná Jesus ou Sprite.", preco: 6, foto: "", destaque: false },
+        { nome: "Suco natural", descricao: "Acerola, goiaba, abacaxi, abacaxi com hortelã, cajá, maracujá, bacuri ou morango. Adicional de leite: R$ 1,50.", preco: 10, foto: "", destaque: false, opcoes: { titulo: "Sabor", lista: ["Acerola", "Goiaba", "Abacaxi", "Abacaxi com hortelã", "Cajá", "Maracujá", "Bacuri", "Morango"] } },
+        { nome: "Refrigerante lata", descricao: "Coca-Cola, Coca-Cola Zero, Fanta Laranja, Fanta Uva, Guaraná Antarctica, Pepsi, Pepsi Black, Guaraná Jesus ou Sprite.", preco: 6, foto: "", destaque: false, opcoes: { titulo: "Sabor", lista: ["Coca-Cola", "Coca-Cola Zero", "Fanta Laranja", "Fanta Uva", "Guaraná Antarctica", "Pepsi", "Pepsi Black", "Guaraná Jesus", "Sprite"] } },
         { nome: "Refrigerante KS", descricao: "", preco: 6, foto: "", destaque: false },
         { nome: "Refrigerante 1 litro", descricao: "", preco: 12, foto: "", destaque: false },
         { nome: "Refrigerante 2 litros", descricao: "", preco: 17, foto: "", destaque: false },
@@ -583,6 +708,52 @@ window.CONFIG = {
       ]
     }
   ],
+
+  /* ----------------------------------------------------------
+     PEDIDOS PELO SITE (carrinho que monta a mensagem no WhatsApp)
+     ---------------------------------------------------------- */
+  pizza: {
+    // sabores: quantos sabores cabem em cada tamanho
+    tamanhos: [
+      { nome: "P", fatias: 4, preco: 39, sabores: 1 },
+      { nome: "M", fatias: 6, preco: 49, sabores: 2 },
+      { nome: "G", fatias: 8, preco: 59, sabores: 2 },
+      { nome: "GG", fatias: 12, preco: 69, sabores: 3 },
+      { nome: "Quadrada", fatias: 20, preco: 98, sabores: 4 }
+    ],
+    bordas: [
+      { nome: "Sem borda recheada", preco: 0 },
+      { nome: "Catupiry", preco: 8 },
+      { nome: "Cheddar", preco: 8 },
+      { nome: "Mussarela", preco: 8 },
+      { nome: "Catupiry com carne seca", preco: 8 },
+      { nome: "Cheddar com carne seca", preco: 8 }
+    ],
+    massas: ["Tradicional", "Vulcão", "Pãozinho", "Camarão"]
+  },
+
+  // Taxa de entrega por bairro. Use taxa: "" para "a combinar".
+  entrega: {
+    bairros: [
+      { nome: "São Sebastião", taxa: 6 },
+      { nome: "Centro", taxa: 6 },
+      { nome: "Codó Novo", taxa: 8 },
+      { nome: "São Pedro", taxa: 8 },
+      { nome: "São Francisco", taxa: 8 },
+      { nome: "Residenciais (escreva qual no endereço)", taxa: 10 },
+      { nome: "Outro bairro", taxa: "" }
+    ]
+  },
+
+  pagamentos: ["Pix", "Dinheiro", "Cartão de crédito", "Cartão de débito"],
+
+  // Pix (lido do QR Code do banco). O site cria o "Pix copia e cola" já com o valor do pedido.
+  pix: {
+    chave: "035579d7-ff75-4ea6-8e45-4b6f6b3b7c04",
+    nome: "PRIMAVERA SABOR",
+    cidade: "SAO PAULO",
+    txid: "1M82YGTCJYSYD73ZF21KN0PTF"
+  },
 
   // Cores (códigos hexadecimais)
   cores: {
@@ -703,8 +874,447 @@ window.CONFIG = {
     $("local").hidden = true;
   }
 
-  /* ---------- Cardápio ---------- */
   var menu = c.menu || [];
+  /* ---------- Carrinho de pedidos ---------- */
+  var reais = function (v) {
+    return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  };
+  var el = function (tag, classe, texto) {
+    var e = document.createElement(tag);
+    if (classe) e.className = classe;
+    if (texto != null) e.textContent = texto;
+    return e;
+  };
+  var guardar = function (chave, valor) {
+    try { localStorage.setItem(chave, JSON.stringify(valor)); } catch (e) {}
+  };
+  var lembrar = function (chave, padrao) {
+    try { var v = JSON.parse(localStorage.getItem(chave)); return v == null ? padrao : v; } catch (e) { return padrao; }
+  };
+
+  var cfgPizza = c.pizza || { tamanhos: [], bordas: [], massas: [] };
+  var cfgEntrega = c.entrega || { bairros: [] };
+  var carrinho = lembrar("ps-carrinho", []);
+  if (!Array.isArray(carrinho)) carrinho = [];
+  var cliente = lembrar("ps-cliente", {});
+
+  /* Pix copia e cola com o valor do pedido */
+  var pixCampo = function (id, v) { v = String(v); return id + (v.length < 10 ? "0" : "") + v.length + v; };
+  var crc16 = function (s) {
+    var c = 0xFFFF;
+    for (var i = 0; i < s.length; i++) {
+      c ^= s.charCodeAt(i) << 8;
+      for (var j = 0; j < 8; j++) c = (c & 0x8000) ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF;
+    }
+    return ("0000" + c.toString(16).toUpperCase()).slice(-4);
+  };
+  var codigoPix = function (valor) {
+    var p = pixCampo("00", "01") + pixCampo("01", "11") +
+      pixCampo("26", pixCampo("00", "br.gov.bcb.pix") + pixCampo("01", (c.pix || {}).chave)) +
+      pixCampo("52", "0000") + pixCampo("53", "986") +
+      (valor ? pixCampo("54", valor.toFixed(2)) : "") +
+      pixCampo("58", "BR") + pixCampo("59", (c.pix || {}).nome) + pixCampo("60", (c.pix || {}).cidade) +
+      pixCampo("62", pixCampo("05", (c.pix || {}).txid || "***")) + "6304";
+    return p + crc16(p);
+  };
+  var copiar = function (texto, botao) {
+    var ok = function () { botao.textContent = "Código copiado ✓"; setTimeout(function () { botao.textContent = "Copiar código Pix"; }, 2500); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(texto).then(ok, function () { velho(); });
+    } else velho();
+    function velho() {
+      var t = document.createElement("textarea"); t.value = texto; t.setAttribute("readonly", "");
+      t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t);
+      t.select(); try { document.execCommand("copy"); ok(); } catch (e) {} t.remove();
+    }
+  };
+  /* caixa com valor, código e botão copiar */
+  var caixaPix = function () {
+    var box = el("div", "pix");
+    var titulo = el("p", "pix__titulo");
+    var codigo = el("textarea", "campo pix__codigo"); codigo.readOnly = true; codigo.rows = 3;
+    var btn = el("button", "btn btn--verde", "Copiar código Pix"); btn.type = "button";
+    btn.onclick = function () { copiar(codigo.value, btn); };
+    var dica = el("p", "pix__dica", "Abra o app do seu banco, escolha Pix copia e cola e cole o código. Depois envie o comprovante no WhatsApp.");
+    box.append(titulo, codigo, btn, dica);
+    box.mostrar = function (valor) {
+      titulo.textContent = valor ? "Pague com Pix: " + reais(valor) : "Pague com Pix (valor a confirmar)";
+      codigo.value = codigoPix(valor);
+    };
+    return box;
+  };
+
+  var folha = $("folha"), folhaTitulo = $("folha-titulo"), folhaCorpo = $("folha-corpo"), folhaRodape = $("folha-rodape");
+  var abrirFolha = function (titulo) {
+    folhaTitulo.textContent = titulo;
+    folhaCorpo.innerHTML = ""; folhaRodape.innerHTML = "";
+    folha.hidden = false; document.body.classList.add("travado");
+    folhaCorpo.scrollTop = 0;
+  };
+  var fecharFolha = function () { folha.hidden = true; document.body.classList.remove("travado"); };
+  folha.addEventListener("click", function (e) { if (e.target.hasAttribute("data-fechar")) fecharFolha(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !folha.hidden) fecharFolha(); });
+
+  var totalItens = function () {
+    return carrinho.reduce(function (s, i) { return s + i.unit * i.qtd; }, 0);
+  };
+  var atualizarBarra = function () {
+    guardar("ps-carrinho", carrinho);
+    var barra = $("barra-carrinho");
+    var n = carrinho.reduce(function (s, i) { return s + i.qtd; }, 0);
+    barra.hidden = n === 0;
+    document.body.classList.toggle("tem-carrinho", n > 0);
+    $("barra-qtd").textContent = "Ver pedido (" + n + (n === 1 ? " item)" : " itens)");
+    $("barra-valor").textContent = reais(totalItens());
+  };
+
+  /* grupo de opções (radio ou checkbox) */
+  var grupo = function (titulo, dica) {
+    var f = el("fieldset", "grupo");
+    var lg = el("legend", null, titulo + " ");
+    if (dica) lg.appendChild(el("span", "grupo__dica", dica));
+    f.appendChild(lg);
+    return f;
+  };
+  var opcao = function (tipo, nome, valor, texto, extra, marcado) {
+    var l = el("label", "opcao");
+    var inp = document.createElement("input");
+    inp.type = tipo; inp.name = nome; inp.value = valor; inp.checked = !!marcado;
+    l.appendChild(inp);
+    l.appendChild(el("span", null, texto));
+    if (extra) l.appendChild(el("small", null, extra));
+    return l;
+  };
+  var contador = function (inicial, aoMudar, minimo) {
+    var box = el("div", "qtd");
+    var menos = el("button", null, "−"), mais = el("button", null, "+"), out = el("output", null, String(inicial));
+    menos.type = mais.type = "button";
+    menos.setAttribute("aria-label", "Diminuir"); mais.setAttribute("aria-label", "Aumentar");
+    var v = inicial;
+    var mudar = function (d) { v = Math.max(minimo, Math.min(50, v + d)); out.textContent = v; aoMudar(v); };
+    menos.onclick = function () { mudar(-1); };
+    mais.onclick = function () { mudar(1); };
+    box.append(menos, out, mais);
+    return box;
+  };
+
+  /* janela para escolher um produto */
+  var abrirProduto = function (it) {
+    var ehPizza = !!it.pizza;
+    abrirFolha(ehPizza ? "Pizza" : it.nome);
+    var form = el("form");
+    form.onsubmit = function (e) { e.preventDefault(); };
+    folhaCorpo.appendChild(form);
+    if (it.descricao && !ehPizza) form.appendChild(el("p", "item__desc", it.descricao));
+
+    var qtd = 1;
+    var botao = el("button", "btn btn--principal");
+    botao.type = "button";
+    var erro = el("p", "erro"); erro.hidden = true;
+
+    var ler = function (nome) {
+      return Array.prototype.filter.call(form.querySelectorAll('input[name="' + nome + '"]'), function (i) { return i.checked; })
+        .map(function (i) { return i.value; });
+    };
+
+    var calcular; /* devolve { unit, nome, detalhes } */
+
+    if (ehPizza) {
+      var sabores = [];
+      menu.forEach(function (cat) { (cat.itens || []).forEach(function (x) { if (x.pizza) sabores.push(x.nome); }); });
+      var tams = cfgPizza.tamanhos || [];
+      var gT = grupo("Tamanho");
+      tams.forEach(function (t, i) {
+        gT.appendChild(opcao("radio", "tam", i, t.nome + " · " + t.fatias + " fatias", reais(t.preco), i === 2));
+      });
+      form.appendChild(gT);
+
+      var gS = grupo("Sabores", " ");
+      var dicaS = gS.querySelector(".grupo__dica");
+      sabores.forEach(function (s) { gS.appendChild(opcao("checkbox", "sabor", s, s, "", s === it.nome)); });
+      form.appendChild(gS);
+
+      var limite = function () { var t = tams[ler("tam")[0]]; return t ? t.sabores : 1; };
+      var ordem = [it.nome]; /* ordem em que os sabores foram marcados */
+      var ajustarSabores = function () {
+        var lim = limite();
+        ordem = ordem.filter(function (s) { return ler("sabor").indexOf(s) > -1; });
+        while (ordem.length > lim) ordem.pop();
+        form.querySelectorAll('input[name="sabor"]').forEach(function (i) { i.checked = ordem.indexOf(i.value) > -1; });
+        dicaS.textContent = lim === 1 ? "(1 sabor)" : "(até " + lim + " sabores · " + ordem.length + " escolhido" + (ordem.length === 1 ? ")" : "s)");
+      };
+      gS.addEventListener("change", function (e) {
+        var i = e.target;
+        if (i.checked) {
+          if (limite() === 1) ordem = [i.value];
+          else if (ordem.length >= limite()) { i.checked = false; erro.textContent = "Esse tamanho aceita até " + limite() + " sabores."; erro.hidden = false; return; }
+          else ordem.push(i.value);
+        } else {
+          ordem = ordem.filter(function (s) { return s !== i.value; });
+        }
+        erro.hidden = true;
+        ajustarSabores(); atualizar();
+      });
+      gT.addEventListener("change", function () { erro.hidden = true; ajustarSabores(); atualizar(); });
+
+      var gB = grupo("Borda");
+      (cfgPizza.bordas || []).forEach(function (b, i) {
+        gB.appendChild(opcao("radio", "borda", i, b.nome, b.preco ? "+ " + reais(b.preco) : "", i === 0));
+      });
+      form.appendChild(gB);
+
+      var gM = grupo("Massa");
+      (cfgPizza.massas || []).forEach(function (m, i) { gM.appendChild(opcao("radio", "massa", m, m, "", i === 0)); });
+      form.appendChild(gM);
+      [gB, gM].forEach(function (g) { g.addEventListener("change", function () { erro.hidden = true; atualizar(); }); });
+
+      calcular = function () {
+        var t = tams[ler("tam")[0]] || tams[0];
+        var b = (cfgPizza.bordas || [])[ler("borda")[0]] || { nome: "", preco: 0 };
+        var det = [];
+        if (ordem.length) det.push((ordem.length > 1 ? "Sabores: " : "Sabor: ") + ordem.join(" + "));
+        if (b.preco) det.push("Borda: " + b.nome);
+        var m = ler("massa")[0];
+        if (m) det.push("Massa: " + m);
+        return { nome: "Pizza " + t.nome + " (" + t.fatias + " fatias)", unit: t.preco + (b.preco || 0), detalhes: det, ok: ordem.length > 0, msg: "Escolha pelo menos 1 sabor." };
+      };
+      ajustarSabores();
+    } else {
+      if (it.tamanhos) {
+        var gTam = grupo("Tamanho");
+        it.tamanhos.forEach(function (t, i) { gTam.appendChild(opcao("radio", "tam", i, t.nome, reais(t.preco), i === 0)); });
+        form.appendChild(gTam);
+        gTam.addEventListener("change", function () { atualizar(); });
+      }
+      if (it.opcoes) {
+        var gOp = grupo(it.opcoes.titulo || "Escolha");
+        it.opcoes.lista.forEach(function (o, i) { gOp.appendChild(opcao("radio", "op", o, o, "", i === 0)); });
+        form.appendChild(gOp);
+      }
+      calcular = function () {
+        var det = [], unit = it.preco, nome = it.nome;
+        if (it.tamanhos) {
+          var t = it.tamanhos[ler("tam")[0]] || it.tamanhos[0];
+          unit = t.preco; nome += " (" + t.nome + ")";
+        }
+        if (it.opcoes) det.push((it.opcoes.titulo || "Escolha") + ": " + ler("op")[0]);
+        return { nome: nome, unit: unit, detalhes: det, ok: true };
+      };
+    }
+
+    var gQ = grupo("Quantidade");
+    gQ.appendChild(contador(1, function (v) { qtd = v; atualizar(); }, 1));
+    form.appendChild(gQ);
+
+    var gO = grupo("Observação", "(opcional)");
+    var obs = el("textarea", "campo");
+    obs.rows = 2; obs.maxLength = 200;
+    obs.placeholder = ehPizza ? "Ex.: sem cebola, bem assada" : "Ex.: sem gelo, bem passado";
+    gO.appendChild(obs);
+    form.appendChild(gO);
+    form.appendChild(erro);
+
+    var atualizar = function () { botao.textContent = "Adicionar · " + reais(calcular().unit * qtd); };
+    botao.onclick = function () {
+      var r = calcular();
+      if (!r.ok) { erro.textContent = r.msg; erro.hidden = false; return; }
+      carrinho.push({ nome: r.nome, unit: r.unit, qtd: qtd, detalhes: r.detalhes, obs: obs.value.trim() });
+      atualizarBarra();
+      fecharFolha();
+    };
+    folhaRodape.appendChild(botao);
+    atualizar();
+  };
+
+  /* janela do pedido: itens, cliente, entrega e pagamento */
+  var abrirPedido = function () {
+    abrirFolha("Seu pedido");
+    var corpo = folhaCorpo;
+
+    var lista = el("div");
+    corpo.appendChild(lista);
+    var desenharItens = function () {
+      lista.innerHTML = "";
+      carrinho.forEach(function (i, idx) {
+        var d = el("div", "linha-item");
+        var topo = el("div", "linha-item__topo");
+        topo.append(el("span", null, i.qtd + "x " + i.nome), el("span", null, reais(i.unit * i.qtd)));
+        d.appendChild(topo);
+        var det = i.detalhes.slice();
+        if (i.obs) det.push("Obs.: " + i.obs);
+        if (det.length) {
+          var ul = el("ul");
+          det.forEach(function (t) { ul.appendChild(el("li", null, t)); });
+          d.appendChild(ul);
+        }
+        var acoes = el("div", "linha-item__acoes");
+        acoes.appendChild(contador(i.qtd, function (v) {
+          if (v === 0) carrinho.splice(idx, 1); else i.qtd = v;
+          atualizarBarra();
+          if (!carrinho.length) { fecharFolha(); return; }
+          desenharItens(); resumir();
+        }, 0));
+        d.appendChild(acoes);
+        lista.appendChild(d);
+      });
+    };
+
+    var campo = function (rotulo, tipo, valor, dica) {
+      var g = grupo(rotulo, dica);
+      var i = el("input", "campo");
+      i.type = tipo || "text"; i.value = valor || "";
+      g.appendChild(i);
+      corpo.appendChild(g);
+      return i;
+    };
+
+    var nome = campo("Seu nome", "text", cliente.nome);
+    nome.autocomplete = "name";
+
+    var gTipo = grupo("Como quer receber?");
+    gTipo.appendChild(opcao("radio", "tipo", "entrega", "Entrega", "", cliente.tipo !== "retirada"));
+    gTipo.appendChild(opcao("radio", "tipo", "retirada", "Retirar no local", "sem taxa", cliente.tipo === "retirada"));
+    corpo.appendChild(gTipo);
+
+    var blocoEnd = el("div");
+    corpo.appendChild(blocoEnd);
+    var gBairro = grupo("Bairro");
+    var bairro = el("select", "campo");
+    bairro.appendChild(new Option("Escolha o bairro", ""));
+    (cfgEntrega.bairros || []).forEach(function (b, i) {
+      bairro.appendChild(new Option(b.nome + (typeof b.taxa === "number" ? " · " + reais(b.taxa) : " · taxa a combinar"), i));
+    });
+    if (cliente.bairro != null && bairro.options[Number(cliente.bairro) + 1]) bairro.value = cliente.bairro;
+    gBairro.appendChild(bairro);
+    blocoEnd.appendChild(gBairro);
+    var gEnd = grupo("Endereço");
+    var rua = el("input", "campo"); rua.placeholder = "Rua e número"; rua.value = cliente.rua || ""; rua.autocomplete = "street-address";
+    var ref = el("input", "campo"); ref.placeholder = "Ponto de referência (opcional)"; ref.value = cliente.ref || "";
+    gEnd.append(rua, ref);
+    blocoEnd.appendChild(gEnd);
+
+    var gPag = grupo("Forma de pagamento");
+    (c.pagamentos || []).forEach(function (p) { gPag.appendChild(opcao("radio", "pag", p, p, "", cliente.pag === p)); });
+    corpo.appendChild(gPag);
+    var gTroco = grupo("Troco para quanto?", "(deixe vazio se não precisar)");
+    var troco = el("input", "campo"); troco.inputMode = "decimal"; troco.placeholder = "Ex.: 100";
+    gTroco.appendChild(troco);
+    corpo.appendChild(gTroco);
+    var boxPix = caixaPix();
+    if ((c.pix || {}).chave) corpo.appendChild(boxPix);
+
+    var resumo = el("div", "resumo");
+    corpo.appendChild(resumo);
+    var erro = el("p", "erro"); erro.hidden = true;
+    corpo.appendChild(erro);
+
+    var valor = function (nomeCampo) {
+      var x = corpo.querySelector('input[name="' + nomeCampo + '"]:checked');
+      return x ? x.value : "";
+    };
+    var taxaAtual = function () {
+      if (valor("tipo") !== "entrega") return 0;
+      var b = (cfgEntrega.bairros || [])[bairro.value];
+      return b ? b.taxa : 0;
+    };
+    var resumir = function () {
+      var entrega = valor("tipo") === "entrega";
+      blocoEnd.hidden = !entrega;
+      gTroco.hidden = valor("pag") !== "Dinheiro";
+      var taxa = taxaAtual();
+      boxPix.hidden = valor("pag") !== "Pix";
+      boxPix.mostrar(typeof taxa === "number" ? totalItens() + taxa : 0);
+      resumo.innerHTML = "";
+      var linha = function (a, b, cls) { var p = el("p", cls); p.append(el("span", null, a), el("span", null, b)); resumo.appendChild(p); };
+      linha("Produtos", reais(totalItens()));
+      if (entrega) linha("Taxa de entrega", bairro.value === "" ? "escolha o bairro" : (typeof taxa === "number" ? reais(taxa) : "a combinar"));
+      linha("Total", reais(totalItens() + (typeof taxa === "number" ? taxa : 0)) + (entrega && typeof taxa !== "number" && bairro.value !== "" ? " + entrega" : ""), "total");
+    };
+    corpo.addEventListener("change", resumir);
+
+    var montarMensagem = function () {
+      var entrega = valor("tipo") === "entrega";
+      var taxa = taxaAtual();
+      var temTaxa = typeof taxa === "number";
+      var total = totalItens() + (temTaxa ? taxa : 0);
+      var sep = "------------------------------";
+      var L = [];
+      L.push("*Novo pedido · " + (c.nome || "") + "*");
+      L.push(sep);
+      L.push("👤 *Cliente:* " + nome.value.trim());
+      if (entrega) {
+        var b = cfgEntrega.bairros[bairro.value];
+        L.push("🛵 Pedido será *entregue* no endereço:");
+        L.push(rua.value.trim() + (ref.value.trim() ? " (" + ref.value.trim() + ")" : "") + ", " + b.nome);
+      } else {
+        L.push("🏠 Cliente vai *retirar no local*");
+      }
+      L.push(sep);
+      L.push("🛍️ *Produtos do pedido*");
+      carrinho.forEach(function (i) {
+        L.push("");
+        L.push(i.qtd + "x " + i.nome + " · " + reais(i.unit * i.qtd));
+        i.detalhes.forEach(function (d) { L.push("  - " + d); });
+        if (i.obs) L.push("  • Obs.: " + i.obs);
+      });
+      L.push(sep);
+      var pag = valor("pag");
+      L.push("💳 *Forma de pagamento:* " + pag);
+      if (pag === "Pix") L.push("📎 Vou enviar o comprovante do Pix");
+      if (pag === "Dinheiro") {
+        var t = parseFloat(troco.value.replace(/[^\d,.]/g, "").replace(",", "."));
+        L.push(t ? "💵 *Troco para:* " + reais(t) : "💵 Não precisa de troco");
+      }
+      L.push("🧾 *Produtos:* " + reais(totalItens()));
+      if (entrega) L.push("🛵 *Taxa de entrega:* " + (temTaxa ? reais(taxa) : "a combinar"));
+      L.push("💰 *Valor total:* " + reais(total) + (entrega && !temTaxa ? " + entrega" : ""));
+      return L.join("\n");
+    };
+
+    var enviar = el("button", "btn btn--principal", "Enviar pedido pelo WhatsApp");
+    enviar.type = "button";
+    enviar.onclick = function () {
+      var falta = "";
+      var entrega = valor("tipo") === "entrega";
+      if (!nome.value.trim()) falta = "Escreva seu nome.";
+      else if (entrega && bairro.value === "") falta = "Escolha o bairro.";
+      else if (entrega && !rua.value.trim()) falta = "Escreva a rua e o número.";
+      else if (!valor("pag")) falta = "Escolha a forma de pagamento.";
+      if (falta) { erro.textContent = falta; erro.hidden = false; erro.scrollIntoView({ block: "center" }); return; }
+      erro.hidden = true;
+      cliente = { nome: nome.value.trim(), tipo: valor("tipo"), bairro: bairro.value, rua: rua.value.trim(), ref: ref.value.trim(), pag: valor("pag") };
+      guardar("ps-cliente", cliente);
+      var link = "https://wa.me/" + numero + "?text=" + encodeURIComponent(montarMensagem());
+      window.open(link, "_blank") || (window.location.href = link);
+      var tx = taxaAtual();
+      mostrarEnviado(link, valor("pag") === "Pix" && (c.pix || {}).chave ? (typeof tx === "number" ? totalItens() + tx : 0) : null);
+    };
+    folhaRodape.appendChild(enviar);
+
+    desenharItens();
+    resumir();
+  };
+
+  var mostrarEnviado = function (link, valorPix) {
+    abrirFolha("Quase pronto!");
+    var box = el("div", "aviso-ok");
+    box.appendChild(el("p", null, "Abrimos o WhatsApp com o seu pedido. Confira a mensagem e toque em enviar."));
+    box.appendChild(el("p", null, "Se o WhatsApp não abriu, toque no botão abaixo."));
+    folhaCorpo.appendChild(box);
+    if (valorPix != null) { var bp = caixaPix(); bp.mostrar(valorPix); folhaCorpo.appendChild(bp); }
+    var de = el("a", "btn btn--verde", "Abrir WhatsApp de novo");
+    de.href = link; de.target = "_blank"; de.rel = "noopener";
+    var novo = el("button", "btn btn--principal", "Já enviei, esvaziar carrinho");
+    novo.type = "button";
+    novo.onclick = function () { carrinho = []; atualizarBarra(); fecharFolha(); };
+    folhaRodape.append(de, novo);
+  };
+
+  $("barra-carrinho").onclick = abrirPedido;
+  window.addEventListener("load", atualizarBarra);
+
+
+  /* ---------- Cardápio ---------- */
   if (!menu.length) {
     $("cardapio").hidden = true;
   } else {
@@ -748,9 +1358,18 @@ window.CONFIG = {
         if (it.descricao) texto.appendChild(criar("p", "item__desc", it.descricao));
 
         var rodape = criar("div", "item__rodape");
-        var preco = formatarPreco(it.preco);
+        var preco = it.tamanhos
+          ? it.tamanhos.map(function (t) { return t.nome + " " + formatarPreco(t.preco); }).join(" · ")
+          : formatarPreco(it.preco);
         if (preco) rodape.appendChild(criar("span", "item__preco", preco));
-        if (numero && it.pedir !== false) {
+        var vendavel = typeof it.preco === "number" || it.tamanhos || it.pizza;
+        if (numero && it.pedir !== false && vendavel) {
+          var botaoAdd = criar("button", "pedir", "Adicionar");
+          botaoAdd.type = "button";
+          botaoAdd.setAttribute("aria-label", "Adicionar " + it.nome + " ao pedido");
+          botaoAdd.onclick = (function (item) { return function () { abrirProduto(item); }; })(it);
+          rodape.appendChild(botaoAdd);
+        } else if (numero && it.pedir !== false) {
           var pedir = criar("a", "pedir", "Pedir");
           pedir.href = linkWhats("Olá! Gostaria de pedir: " + it.nome + (preco ? " (" + preco + ")" : ""));
           pedir.target = "_blank";
