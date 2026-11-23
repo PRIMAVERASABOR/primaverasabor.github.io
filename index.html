@@ -366,6 +366,16 @@ body.travado { overflow: hidden; }
   font-size: .95rem; line-height: 1.45;
 }
 .aviso-fechado strong { display: block; margin-bottom: .15rem; }
+.do-dia {
+  margin: 0 0 1.25rem; padding: 1rem 1.125rem; border-radius: 1rem;
+  background: var(--cor-principal); color: #fff;
+}
+.do-dia__titulo { margin: 0 0 .25rem; font-weight: 700; font-size: 1.125rem; color: var(--cor-destaque); }
+.do-dia__sub { margin: 0 0 .75rem; font-size: .9rem; opacity: .85; }
+.do-dia__lista { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem; padding: 0; list-style: none; }
+.do-dia__lista li { padding: .3rem .7rem; border-radius: 999px; background: rgba(255, 255, 255, .14); font-size: .9rem; }
+.do-dia__rotulo { margin: .25rem 0 .4rem; font-weight: 700; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; opacity: .8; }
+.do-dia p:last-child, .do-dia ul:last-child { margin-bottom: 0; }
 .barra-carrinho__valor { color: var(--cor-destaque); white-space: nowrap; }
 
 .pedir { border: 0; font-size: 1rem; cursor: pointer; font-family: var(--fonte-texto); }
@@ -560,6 +570,14 @@ window.CONFIG = {
   // Aviso "Aberto agora / Fechado" (usa sempre o horário de Codó, não o do celular do cliente)
   // dias: 0 = domingo, 1 = segunda ... 6 = sábado. Horas no formato "18:00".
   // Para fechar num dia especial (feriado), coloque a data em "fechadoEm": ["2026-12-25"]
+  // ESPETINHOS: cardápio do dia (as carnes são fixas; arroz e acompanhamentos mudam todo dia)
+  // O site lê a PLANILHA DO GOOGLE abaixo. Cole aqui o link de "Publicar na Web" (formato CSV).
+  // Se a planilha não abrir, o site usa as listas de reserva logo abaixo (pode deixar vazias).
+  cardapioDoDia: {
+    planilha: "",
+    reserva: { data: "", arroz: [], acompanhamentos: [], especiais: [] }
+  },
+
   funcionamento: {
     dias: [1, 2, 3, 4, 5, 6],
     abre: "18:00",
@@ -629,8 +647,8 @@ window.CONFIG = {
         { nome: "Espetinho de porco", descricao: "Tradicional.", preco: 25, foto: "", destaque: false },
         { nome: "Espetinho de toscana", descricao: "Tradicional.", preco: 25, foto: "", destaque: false },
         { nome: "Espetinho de picanha", descricao: "Tradicional.", preco: 49, foto: "", destaque: false },
-        { nome: "Especial com arroz cremoso (boi, frango, porco ou toscana)", descricao: "Acompanha baião cremoso, arroz de carne seca cremoso ou arroz de cuxá com camarão.", preco: 39, foto: "", destaque: false, opcoes: { titulo: "Espetinho e acompanhamento", lista: ["Boi · Baião cremoso", "Boi · Arroz de carne seca", "Boi · Arroz de cuxá com camarão", "Frango · Baião cremoso", "Frango · Arroz de carne seca", "Frango · Arroz de cuxá com camarão", "Porco · Baião cremoso", "Porco · Arroz de carne seca", "Porco · Arroz de cuxá com camarão", "Toscana · Baião cremoso", "Toscana · Arroz de carne seca", "Toscana · Arroz de cuxá com camarão"] } },
-        { nome: "Especial com arroz cremoso (picanha)", descricao: "Acompanha baião cremoso, arroz de carne seca cremoso ou arroz de cuxá com camarão.", preco: 55, foto: "", destaque: false, opcoes: { titulo: "Acompanhamento", lista: ["Baião cremoso", "Arroz de carne seca cremoso", "Arroz de cuxá com camarão"] } },
+        { nome: "Especial com arroz cremoso (boi, frango, porco ou toscana)", descricao: "Escolha baião cremoso ou arroz de carne seca cremoso.", preco: 39, foto: "", destaque: false, opcoes: { titulo: "Espetinho e arroz", lista: ["Boi · Baião cremoso", "Boi · Arroz de carne seca cremoso", "Frango · Baião cremoso", "Frango · Arroz de carne seca cremoso", "Porco · Baião cremoso", "Porco · Arroz de carne seca cremoso", "Toscana · Baião cremoso", "Toscana · Arroz de carne seca cremoso"] } },
+        { nome: "Especial com arroz cremoso (picanha)", descricao: "Escolha baião cremoso ou arroz de carne seca cremoso.", preco: 55, foto: "", destaque: false, opcoes: { titulo: "Arroz", lista: ["Baião cremoso", "Arroz de carne seca cremoso"] } },
         { nome: "Especial com risoto de camarão ou arroz de carneiro (boi, frango ou porco)", descricao: "", preco: 49, foto: "", destaque: false, opcoes: { titulo: "Espetinho e acompanhamento", lista: ["Boi · Risoto de camarão", "Boi · Arroz de carneiro", "Frango · Risoto de camarão", "Frango · Arroz de carneiro", "Porco · Risoto de camarão", "Porco · Arroz de carneiro"] } },
         { nome: "Especial com risoto de camarão ou arroz de carneiro (toscana)", descricao: "", preco: 45, foto: "", destaque: false, opcoes: { titulo: "Acompanhamento", lista: ["Risoto de camarão", "Arroz de carneiro"] } },
         { nome: "Especial com risoto de camarão ou arroz de carneiro (picanha)", descricao: "", preco: 69, foto: "", destaque: false, opcoes: { titulo: "Acompanhamento", lista: ["Risoto de camarão", "Arroz de carneiro"] } }
@@ -803,6 +821,7 @@ window.CONFIG = {
   var $ = function (id) { return document.getElementById(id); };
 
   /* ---------- Aberto agora / Fechado ---------- */
+  var doDia = null; /* cardápio do dia dos espetinhos, quando carregado */
   var NOMES_DIA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
   var minutos = function (hhmm) { var p = String(hhmm || "0:0").split(":"); return (+p[0]) * 60 + (+p[1] || 0); };
   var horaTexto = function (hhmm) { var p = String(hhmm).split(":"); return (+p[0]) + "h" + (+p[1] ? p[1] : ""); };
@@ -1153,9 +1172,18 @@ window.CONFIG = {
         form.appendChild(gTam);
         gTam.addEventListener("change", function () { atualizar(); });
       }
-      if (it.opcoes) {
-        var gOp = grupo(it.opcoes.titulo || "Escolha");
-        it.opcoes.lista.forEach(function (o, i) { gOp.appendChild(opcao("radio", "op", o, o, "", i === 0)); });
+      var opcoes = it.opcoes;
+      var acompDia = [];
+      if (!opcoes && it.pratoDoDia && doDia && doDia.arroz.length) {
+        opcoes = { titulo: "Arroz", lista: doDia.arroz };
+        acompDia = doDia.acompanhamentos;
+        if (acompDia.length) form.appendChild(el("p", "item__desc", "Acompanha: " + acompDia.join(", ") + "."));
+      } else if (it.pratoDoDia && !doDia) {
+        form.appendChild(el("p", "item__desc", "O arroz e os acompanhamentos mudam todo dia. Se quiser, escreva sua preferência na observação."));
+      }
+      if (opcoes) {
+        var gOp = grupo(opcoes.titulo || "Escolha", opcoes === it.opcoes ? undefined : "(escolha 1)");
+        opcoes.lista.forEach(function (o, i) { gOp.appendChild(opcao("radio", "op", o, o, "", i === 0)); });
         form.appendChild(gOp);
       }
       calcular = function () {
@@ -1164,7 +1192,8 @@ window.CONFIG = {
           var t = it.tamanhos[ler("tam")[0]] || it.tamanhos[0];
           unit = t.preco; nome += " (" + t.nome + ")";
         }
-        if (it.opcoes) det.push((it.opcoes.titulo || "Escolha") + ": " + ler("op")[0]);
+        if (opcoes) det.push((opcoes.titulo || "Escolha") + ": " + ler("op")[0]);
+        if (acompDia.length) det.push("Acompanhamentos do dia: " + acompDia.join(", "));
         return { nome: nome, unit: unit, detalhes: det, ok: true };
       };
     }
@@ -1472,6 +1501,90 @@ window.CONFIG = {
 
       area.appendChild(bloco);
     });
+
+    /* Cardápio do dia dos espetinhos (planilha do Google, com reserva no arquivo) */
+    var dd = c.cardapioDoDia;
+    var alvo = [].slice.call(area.querySelectorAll(".categoria")).filter(function (s) {
+      return /espetinho/i.test((s.querySelector("h3") || {}).textContent || "");
+    })[0];
+    menu.forEach(function (cat) {
+      if (!/espetinho/i.test(cat.categoria || "")) return;
+      (cat.itens || []).forEach(function (x) { if (!/especial/i.test(x.nome)) x.pratoDoDia = true; });
+    });
+    if (dd && alvo) {
+      var box = criar("div", "do-dia");
+      box.appendChild(criar("p", "do-dia__titulo", "Cardápio de hoje (" + NOMES_DIA[agoraCodo().dia] + ")"));
+      box.appendChild(criar("p", "do-dia__sub", "Carregando o cardápio do dia…"));
+      alvo.insertBefore(box, alvo.querySelector("h3").nextSibling);
+
+      var desenhar = function (d) {
+        doDia = d;
+        box.innerHTML = "";
+        box.appendChild(criar("p", "do-dia__titulo", "Cardápio de hoje (" + NOMES_DIA[agoraCodo().dia] + ")"));
+        if (!d) {
+          box.appendChild(criar("p", "do-dia__sub", "O arroz e os acompanhamentos mudam todo dia. Pergunte o cardápio de hoje pelo WhatsApp ou escreva sua preferência na observação do pedido."));
+          return;
+        }
+        box.appendChild(criar("p", "do-dia__sub", "Espetinho servido como prato feito: você escolhe 1 arroz e leva todos os acompanhamentos."));
+        var grupoChips = function (rotulo, itens) {
+          if (!itens.length) return;
+          box.appendChild(criar("p", "do-dia__rotulo", rotulo));
+          var ul = criar("ul", "do-dia__lista");
+          itens.forEach(function (a) { ul.appendChild(criar("li", null, a)); });
+          box.appendChild(ul);
+        };
+        grupoChips("Arroz (escolha 1)", d.arroz);
+        grupoChips("Acompanhamentos (vão todos)", d.acompanhamentos);
+        grupoChips("Especiais do dia", d.especiais);
+      };
+
+      /* só vale se for de hoje (quando a data for preenchida) */
+      var valido = function (d) {
+        if (!d || !(d.arroz.length || d.acompanhamentos.length)) return null;
+        if (d.data) {
+          var hoje = agoraCodo().data; /* AAAA-MM-DD */
+          var p = String(d.data).trim().split(/[\/\-.]/);
+          var iso = p.length === 3 ? (p[0].length === 4 ? p[0] + "-" + p[1] + "-" + p[2] : p[2] + "-" + p[1] + "-" + p[0]) : "";
+          iso = iso.replace(/-(\d)(?=-|$)/g, "-0$1");
+          if (iso !== hoje) return null;
+        }
+        return d;
+      };
+      var lerCSV = function (txt) {
+        var d = { data: "", arroz: [], acompanhamentos: [], especiais: [] };
+        txt.split(/\r?\n/).forEach(function (linha) {
+          var cols = [], atual = "", aspas = false;
+          for (var k = 0; k < linha.length; k++) {
+            var ch = linha[k];
+            if (ch === '"') { if (aspas && linha[k + 1] === '"') { atual += '"'; k++; } else aspas = !aspas; }
+            else if (ch === "," && !aspas) { cols.push(atual); atual = ""; }
+            else atual += ch;
+          }
+          cols.push(atual);
+          var tipo = (cols[0] || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          var item = (cols[1] || "").trim();
+          if (!item) return;
+          if (tipo.indexOf("data") === 0) d.data = item;
+          else if (tipo.indexOf("arroz") === 0) d.arroz.push(item);
+          else if (tipo.indexOf("acomp") === 0) d.acompanhamentos.push(item);
+          else if (tipo.indexOf("especia") === 0) d.especiais.push(item);
+        });
+        return d;
+      };
+      var reserva = function () {
+        var r = dd.reserva || {};
+        return valido({ data: r.data || "", arroz: r.arroz || [], acompanhamentos: r.acompanhamentos || [], especiais: r.especiais || [] });
+      };
+      if (dd.planilha && window.fetch) {
+        var url = dd.planilha + (dd.planilha.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now();
+        fetch(url, { cache: "no-store" })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+          .then(function (txt) { desenhar(valido(lerCSV(txt)) || reserva()); })
+          .catch(function () { desenhar(reserva()); });
+      } else {
+        desenhar(reserva());
+      }
+    }
   }
 })();
 
