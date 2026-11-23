@@ -1580,7 +1580,7 @@ window.CONFIG = {
           var tipo = (cols[0] || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           var item = (cols[1] || "").trim();
           if (!item) return;
-          if (tipo.indexOf("data") === 0) d.data = item;
+          if (tipo.indexOf("data") === 0) { if (/\d/.test(item) && !d.data) d.data = item; }
           else if (tipo.indexOf("arroz") === 0) d.arroz.push(item);
           else if (tipo.indexOf("acomp") === 0) d.acompanhamentos.push(item);
           else if (tipo.indexOf("especia") === 0) d.especiais.push(item);
