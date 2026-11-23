@@ -179,6 +179,7 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
 .btn--contorno  { border-color: rgba(255, 255, 255, .7); color: #fff; }
 .hero__oque { margin: .5rem 0 0; font-weight: 700; font-size: 1.0625rem; color: var(--cor-destaque); }
 .hero__entrega { margin: .5rem 0 0; font-size: .9375rem; opacity: .9; }
+.hero__horario { margin: .75rem 0 0; font-weight: 700; font-size: 1rem; color: var(--cor-destaque); }
 .insta { margin-top: 1.25rem; display: inline-flex; align-items: center; gap: .5rem; color: #fff; opacity: .85; text-decoration: none; font-size: .9375rem; padding: .5rem; }
 .insta[hidden] { display: none; }
 
@@ -506,12 +507,14 @@ textarea.campo { min-height: 4.5rem; resize: vertical; }
       <p class="hero__oque">Espetinhos na brasa<br>Pizzas e Esfirras abertas</p>
       <a class="promo-hoje" id="promo-hoje" href="#hoje" hidden></a>
       <p class="hero__entrega">🛵 Delivery a partir de R$ 6 · Pix e cartão</p>
+      <p class="hero__horario" id="horario-topo">🕕 Segunda a sábado, das 18h às 23h</p>
       <p class="status" id="status" hidden><span class="status__ponto"></span><span id="status-texto"></span></p>
 
       <nav class="acoes" aria-label="Ações principais">
         <a class="btn btn--principal" id="btn-cardapio" href="#cardapio">Fazer pedido</a>
         <a class="btn btn--contorno" id="btn-hoje" href="#hoje">Cardápio de hoje</a>
         <a class="btn btn--branco" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Falar no WhatsApp</a>
+        <a class="btn btn--contorno" id="btn-local" href="#local">📍 Como chegar</a>
       </nav>
       <div class="wifi" id="wifi">
         <span class="wifi__ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M2 8.8a15 15 0 0 1 20 0M5.5 12.4a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="19.3" r="1.5" fill="currentColor"/></svg></span>
@@ -976,6 +979,7 @@ window.CONFIG = {
   if (c.endereco || c.horario) {
     $("endereco").textContent = c.endereco || "";
     $("horario").textContent = c.horario || "";
+    if ($("horario-topo")) { if (c.horario) $("horario-topo").textContent = "🕕 " + c.horario; else $("horario-topo").hidden = true; }
     if (!c.endereco) $("endereco").parentNode.hidden = true;
     if (!c.horario) $("horario").parentNode.hidden = true;
     if (c.endereco) {
