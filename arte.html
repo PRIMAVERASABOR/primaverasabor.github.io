@@ -7,7 +7,7 @@
 <title>Arte do cardápio – Primavera Sabor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@300;400;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@300;400;500;800&display=swap" rel="stylesheet">
 <style>
   :root { --fundo:#141110; --cartao:#211c19; --texto:#f4ede4; --suave:#b9ab9b; --ouro:#e3a72f; --verde:#2f8f5b; }
   * { box-sizing: border-box; }
@@ -30,6 +30,9 @@
   label { display:block; font-size:14px; color:var(--suave); margin:12px 0 4px; }
   textarea, select { width:100%; font:15px Poppins, sans-serif; background:#120f0d; color:var(--texto); border:1px solid #4a4038; border-radius:8px; padding:8px; }
   textarea { min-height:90px; resize:vertical; }
+  .modelos { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 12px; }
+  .modelo { background:#2a2420; color:var(--suave); padding:10px; font-size:15px; border:2px solid transparent; }
+  .modelo.ativo { border-color:var(--ouro); color:var(--texto); }
   .dica { font-size:13px; color:var(--suave); margin:6px 0 0; }
 </style>
 </head>
@@ -38,6 +41,7 @@
   <h1>Arte do cardápio do dia</h1>
   <p class="sub">Feita sozinha com o que está na planilha. Confira e poste.</p>
   <p id="status" class="aviso">Carregando a planilha…</p>
+  <div class="modelos"><button id="m-novo" class="modelo ativo">Novo (verde)</button><button id="m-classico" class="modelo">Clássico</button></div>
   <canvas id="arte" width="1080" height="1920" aria-label="Prévia da arte do cardápio"></canvas>
   <div class="botoes">
     <button id="compartilhar" class="principal">Compartilhar</button>
@@ -70,7 +74,9 @@
   var cv = document.getElementById("arte"), ctx = cv.getContext("2d");
   var el = function (id) { return document.getElementById(id); };
   var status = el("status"), selDia = el("dia"), txAcomp = el("acomp"), txEspec = el("espec"), txEspetos = el("espetos");
-  var fundo = new Image(), dataArte = "";
+  var fundo = new Image(), logo = new Image(), primo = new Image(), dataArte = "";
+  var modelo = "novo";
+  try { modelo = localStorage.getItem("arteModelo") || "novo"; } catch (e) {}
 
   DIAS.forEach(function (d, i) { var o = document.createElement("option"); o.value = i; o.textContent = d; selDia.appendChild(o); });
   txEspetos.value = ESPETOS_PADRAO;
@@ -158,6 +164,7 @@
   };
 
   function desenhar() {
+    if (modelo === "novo") return desenharNovo();
     ctx.clearRect(0, 0, 1080, 1920);
     if (fundo.complete && fundo.naturalWidth) ctx.drawImage(fundo, 0, 0, 1080, 1920);
     else { ctx.fillStyle = "#15100d"; ctx.fillRect(0, 0, 1080, 1920); }
@@ -202,6 +209,92 @@
     ctx.shadowBlur = 0;
   }
 
+  /* ====== MODELO NOVO: verde e amarelo, logo e Seu Primo ====== */
+  var VERDE = "#23473A", VERDE2 = "#16302a", AMARELO = "#E3A72F", CREME = "#FFF8EA", MARROM = "#3a2c22";
+  var caixa = function (x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
+  var pronta = function (im) { return im.complete && im.naturalWidth; };
+
+  function desenharNovo() {
+    ctx.save();
+    ctx.letterSpacing = "0px"; ctx.shadowBlur = 0; ctx.textBaseline = "alphabetic";
+    var g = ctx.createLinearGradient(0, 0, 0, 1920); g.addColorStop(0, VERDE); g.addColorStop(1, VERDE2);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 1080, 1920);
+    /* listras suaves */
+    ctx.strokeStyle = "rgba(255,255,255,.035)"; ctx.lineWidth = 26;
+    for (var k = -1920; k < 1080; k += 90) { ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k + 1920, 1920); ctx.stroke(); }
+
+    /* logo num cartão branco */
+    ctx.shadowColor = "rgba(0,0,0,.35)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "#fff"; caixa(250, 46, 580, 330, 36); ctx.fill();
+    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    if (pronta(logo)) ctx.drawImage(logo, 275, 66, 530, 301);
+
+    /* título */
+    var dia = (DIAS[+selDia.value] || "").toUpperCase();
+    ctx.textAlign = "center"; ctx.fillStyle = AMARELO;
+    fonte("800", 44); ctx.letterSpacing = "10px"; ctx.fillText("CARDÁPIO DE", 545, 462); ctx.letterSpacing = "0px";
+    ctx.fillStyle = "#fff"; fonte("800", 128);
+    var wd = ctx.measureText(dia).width; if (wd > 960) { ctx.save(); ctx.translate(540, 590); ctx.scale(960 / wd, 1); ctx.fillText(dia, 0, 0); ctx.restore(); } else ctx.fillText(dia, 540, 590);
+
+    /* painel creme */
+    var PX = 60, PY = 640, PW = 960, PH = 900;
+    ctx.fillStyle = CREME; caixa(PX, PY, PW, PH, 40); ctx.fill();
+    ctx.fillStyle = AMARELO; caixa(PX, PY, PW, 14, 7); ctx.fill();
+
+    var todos = linhas(txAcomp.value);
+    var arroz = todos.filter(function (t) { return /^arroz/i.test(t); });
+    var acomp = todos.filter(function (t) { return !/^arroz/i.test(t); });
+    var espec = linhas(txEspec.value), espetos = linhas(txEspetos.value);
+    var secoes = [];
+    if (arroz.length) secoes.push({ t: "ARROZ", itens: arroz, cols: 2 });
+    if (acomp.length) secoes.push({ t: "ACOMPANHAMENTOS", itens: acomp, cols: 2 });
+    if (espec.length) secoes.push({ t: "ESPECIAIS", itens: espec, cols: 1, estrela: true });
+    if (espetos.length) secoes.push({ t: "ESPETOS", itens: espetos, cols: 1, centro: true });
+
+    var conta = function (e) { var a = 0; secoes.forEach(function (s) { a += 70 * e + Math.ceil(s.itens.length / s.cols) * 54 * e; }); return a + (secoes.length - 1) * 26; };
+    var e = 1; while (e > 0.55 && conta(e) > PH - 80) e -= 0.02;
+    var folga = secoes.length > 1 ? Math.min(60, (PH - 80 - conta(e)) / (secoes.length - 1)) + 26 : 0;
+    var y = PY + 50, X0 = PX + 56, LARG = PW - 112;
+
+    secoes.forEach(function (s) {
+      /* título da seção com faixa */
+      fonte("800", 40 * e); ctx.textAlign = "left"; ctx.fillStyle = VERDE;
+      ctx.letterSpacing = "2px"; ctx.fillText(s.t, X0, y + 40 * e); var wt = ctx.measureText(s.t).width; ctx.letterSpacing = "0px";
+      ctx.fillStyle = AMARELO; ctx.fillRect(X0, y + 52 * e, Math.min(wt, 120), 6 * e);
+      ctx.strokeStyle = "rgba(35,71,58,.18)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X0 + wt + 20, y + 28 * e); ctx.lineTo(X0 + LARG, y + 28 * e); ctx.stroke();
+      y += 70 * e;
+      fonte("500", 36 * e); ctx.fillStyle = MARROM;
+      var colW = LARG / s.cols, linhasN = Math.ceil(s.itens.length / s.cols);
+      s.itens.forEach(function (t, i) {
+        var c = s.cols === 2 ? Math.floor(i / linhasN) : 0, l = s.cols === 2 ? i % linhasN : i;
+        var yy = y + l * 54 * e + 40 * e, texto = t.toUpperCase();
+        if (s.centro) { ctx.textAlign = "center"; escrever(texto, PX + PW / 2, yy, "center", LARG); ctx.textAlign = "left"; return; }
+        var xx = X0 + c * colW, marca = s.estrela ? "★" : "•";
+        ctx.fillStyle = AMARELO; ctx.fillText(marca, xx, yy); ctx.fillStyle = MARROM;
+        var rec = (s.estrela ? 48 : 36) * e; escrever(texto, xx + rec, yy, "left", colW - rec - 14 * e);
+      });
+      y += linhasN * 54 * e + folga;
+    });
+
+    /* rodapé com Seu Primo */
+    var CX = 205, CY = 1735, R = 160;
+    ctx.save(); ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.closePath();
+    ctx.fillStyle = AMARELO; ctx.fill(); ctx.clip();
+    if (pronta(primo)) ctx.drawImage(primo, CX - R + 8, CY - R + 8, 2 * R - 16, 2 * R - 16);
+    ctx.restore();
+    ctx.lineWidth = 10; ctx.strokeStyle = AMARELO; ctx.beginPath(); ctx.arc(CX, CY, R - 4, 0, Math.PI * 2); ctx.stroke();
+
+    var TX = 400; ctx.textAlign = "left";
+    ctx.fillStyle = AMARELO; fonte("800", 34); ctx.fillText("TEMOS DELIVERY", TX, 1622);
+    ctx.fillStyle = "#fff"; fonte("400", 31);
+    ctx.fillText("Rua Nazeu Quadros, 06", TX, 1676);
+    ctx.fillText("São Sebastião, Codó-MA", TX, 1716);
+    ctx.fillText("Seg a sáb, 18h às 23h", TX, 1770);
+    ctx.fillStyle = AMARELO; caixa(TX - 4, 1800, 620, 86, 43); ctx.fill();
+    ctx.fillStyle = VERDE2; fonte("800", 42); ctx.textAlign = "center"; ctx.fillText("(99) 98436-0319", TX + 306, 1858);
+    ctx.restore();
+  }
+
   var nomeArquivo = function () { return "cardapio-" + (DIAS[+selDia.value] || "dia").normalize("NFD").replace(/[̀-ͯ]/g, "") + "-" + dataArte + ".jpg"; };
   var gerar = function (cb) { cv.toBlob(function (b) { cb(b); }, "image/jpeg", 0.92); };
 
@@ -225,9 +318,19 @@
   el("recarregar").onclick = buscar;
   [selDia, txAcomp, txEspec, txEspetos].forEach(function (c) { c.addEventListener("input", desenhar); });
 
-  fundo.onload = desenhar;
+  var marcar = function () {
+    el("m-novo").classList.toggle("ativo", modelo === "novo");
+    el("m-classico").classList.toggle("ativo", modelo !== "novo");
+    try { localStorage.setItem("arteModelo", modelo); } catch (e) {}
+    desenhar();
+  };
+  el("m-novo").onclick = function () { modelo = "novo"; marcar(); };
+  el("m-classico").onclick = function () { modelo = "classico"; marcar(); };
+  marcar();
+  fundo.onload = logo.onload = primo.onload = desenhar;
+  logo.src = "arte-logo.webp"; primo.src = "arte-primo.webp";
   fundo.src = FUNDO;
-  var fontes = ["300 38px Poppins", "800 50px Poppins", "118px Allura"].map(function (f) { return document.fonts ? document.fonts.load(f, "AÇÃO") : null; });
+  var fontes = ["300 38px Poppins", "800 50px Poppins", "500 36px Poppins", "118px Allura"].map(function (f) { return document.fonts ? document.fonts.load(f, "AÇÃO") : null; });
   Promise.all(fontes).catch(function () {}).then(function () { desenhar(); buscar(); });
 })();
 </script>
