@@ -344,6 +344,24 @@ h1, h2 { font-family: var(--fonte-titulo); font-weight: 700; margin: 0; }
 body.tem-carrinho { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
 body.travado { overflow: hidden; }
 
+.whats-flutuante {
+  position: fixed; z-index: 19; right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  width: 3.5rem; height: 3.5rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #25D366; color: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+  transition: bottom .2s, opacity .2s;
+}
+.whats-flutuante[hidden] { display: none; }
+.tem-carrinho .whats-flutuante { bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+.aval__lista { display: grid; gap: .75rem; margin-bottom: 1.25rem; }
+.aval__lista:empty { display: none; }
+.aval__card { margin: 0; padding: 1rem 1.1rem; border-radius: 14px; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, .06); }
+.aval__estrelas { color: var(--cor-destaque); letter-spacing: .1em; font-size: 1rem; }
+.aval__card blockquote { margin: .35rem 0 .5rem; font-style: italic; }
+.aval__card figcaption { font-size: .85rem; font-weight: 700; color: var(--cor-principal); }
+.aval__convite { margin: 0 0 .9rem !important; }
+.aval__btn { width: 100%; }
 .barra-carrinho {
   position: fixed; z-index: 20;
   left: 50%; transform: translateX(-50%);
@@ -542,6 +560,13 @@ textarea.campo { min-height: 4.5rem; resize: vertical; }
     </section>
 
     <!-- Endereço, horário e mapa -->
+    <section class="sobre avaliacoes" id="avaliacoes">
+      <h2 id="aval-titulo">O que dizem nossos clientes</h2>
+      <div class="aval__lista" id="aval-lista"></div>
+      <p class="aval__convite">Já comeu com a gente? Sua avaliação ajuda muito!</p>
+      <a class="btn btn--verde aval__btn" id="btn-avaliar" href="#" target="_blank" rel="noopener">⭐ Avalie a gente no Google</a>
+    </section>
+
     <section class="sobre local" id="local">
       <h2>Onde estamos</h2>
       <p class="local__linha"><strong>Endereço</strong><span id="endereco"></span></p>
@@ -552,6 +577,7 @@ textarea.campo { min-height: 4.5rem; resize: vertical; }
   </main>
 
   <!-- Carrinho: barra de baixo e janela de pedido -->
+  <a class="whats-flutuante" id="whats-flutuante" href="#" target="_blank" rel="noopener" aria-label="Falar no WhatsApp" hidden><svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 3C9 3 3.3 8.6 3.3 15.6c0 2.4.7 4.7 1.9 6.7L3 29l6.9-2.2a12.8 12.8 0 0 0 6.1 1.5c7 0 12.7-5.7 12.7-12.7S23 3 16 3zm0 23.1c-2 0-3.9-.6-5.5-1.6l-.4-.2-4.1 1.3 1.3-4-.3-.4a10.4 10.4 0 0 1-1.6-5.6C5.4 9.8 10.2 5 16 5s10.6 4.7 10.6 10.6S21.8 26.1 16 26.1zm5.8-7.8c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.3-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.3.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.7 5 .8.4 1.4.6 1.9.7.8.3 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg></a>
   <button class="barra-carrinho" id="barra-carrinho" type="button" hidden>
     <span id="barra-qtd">Ver pedido</span><span class="barra-carrinho__valor" id="barra-valor"></span>
   </button>
@@ -652,6 +678,16 @@ window.CONFIG = {
 
   // Instagram: só o nome de usuário, sem @
   instagram: "primaverasabor",
+
+  // AVALIAÇÕES: até 3 elogios reais de clientes do Google. Deixe a lista vazia para mostrar só o botão.
+  // Formato: { nome: "Maria S.", texto: "Pizza maravilhosa!", estrelas: 5 }
+  avaliacoes: [
+    { nome: "Léo e Mari", texto: "Gente, gostei demais da pizza, é top demais. A refeição é uma maravilha. O atendimento é show. Seu Lima está de parabéns.", estrelas: 5 },
+    { nome: "Raniere Miranda", texto: "Ótima comida, excelente atendimento e muita rapidez no pedido. Lugar arejado e muito tranquilo. Recomendo.", estrelas: 5 },
+    { nome: "Ana Ferreira", texto: "Ambiente muito legal e a comida é deliciosa. Voltarei novamente.", estrelas: 5 }
+  ],
+  // Link do botão "Avalie a gente no Google" (perfil do restaurante no Google Maps)
+  linkAvaliar: "https://maps.app.goo.gl/cXaT3TRgySntm8416",
 
   // Para onde o botão "Ver cardápio" leva (a seção #cardapio nasce na Etapa 2)
   cardapio: "#cardapio",
@@ -988,6 +1024,32 @@ window.CONFIG = {
   } else {
     $("btn-whatsapp").hidden = true;
   }
+
+  /* Botão flutuante do WhatsApp: aparece depois que o cliente passa da capa */
+  var flut = $("whats-flutuante");
+  if (numero && flut) {
+    flut.href = $("btn-whatsapp").href;
+    var capa = $("inicio");
+    if ("IntersectionObserver" in window && capa) {
+      new IntersectionObserver(function (e) { flut.hidden = e[0].isIntersecting; }).observe(capa);
+    } else flut.hidden = false;
+  }
+
+  /* Avaliações de clientes + botão para avaliar no Google */
+  var listaAval = $("aval-lista");
+  (c.avaliacoes || []).slice(0, 3).forEach(function (a) {
+    if (!a || !a.texto) return;
+    var f = document.createElement("figure"); f.className = "aval__card";
+    var e = document.createElement("div"); e.className = "aval__estrelas";
+    var n = Math.max(1, Math.min(5, +a.estrelas || 5));
+    e.textContent = "★★★★★".slice(0, n); e.setAttribute("aria-label", n + " estrelas");
+    var q = document.createElement("blockquote"); q.textContent = "“" + a.texto + "”";
+    var cap = document.createElement("figcaption"); cap.textContent = (a.nome || "Cliente") + " · Google";
+    f.appendChild(e); f.appendChild(q); f.appendChild(cap); listaAval.appendChild(f);
+  });
+  if (!listaAval.children.length) $("aval-titulo").textContent = "Gostou? Avalie a gente";
+  if (c.linkAvaliar) $("btn-avaliar").href = c.linkAvaliar;
+  else $("btn-avaliar").hidden = true;
 
   if (c.cardapio) {
     $("btn-cardapio").href = c.cardapio;
