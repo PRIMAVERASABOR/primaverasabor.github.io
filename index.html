@@ -380,6 +380,9 @@ body.travado { overflow: hidden; }
 .do-dia__lista { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem; padding: 0; list-style: none; }
 .do-dia__lista li { padding: .3rem .7rem; border-radius: 999px; background: rgba(255, 255, 255, .14); font-size: .9rem; }
 .do-dia__rotulo { margin: .25rem 0 .4rem; font-weight: 700; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; opacity: .8; }
+.do-dia__promo { margin: 0 0 .5rem; padding: .6rem .8rem; border-radius: .75rem; background: var(--cor-destaque); color: #1B1405; font-weight: 700; }
+.promo-hoje { display: block; text-decoration: none; margin: .9rem 0 0; padding: .6rem 1rem; border-radius: .9rem; background: var(--cor-destaque); color: #1B1405; font-weight: 700; font-size: .95rem; }
+.promo-hoje[hidden] { display: none; }
 .do-dia p:last-child, .do-dia ul:last-child { margin-bottom: 0; }
 .barra-carrinho__valor { color: var(--cor-destaque); white-space: nowrap; }
 
@@ -488,6 +491,7 @@ textarea.campo { min-height: 4.5rem; resize: vertical; }
       <h1 id="nome">Nome do Restaurante</h1>
       <p class="slogan" id="slogan"></p>
       <p class="hero__oque">Espetinhos na brasa<br>Pizzas e Esfirras abertas</p>
+      <a class="promo-hoje" id="promo-hoje" href="#hoje" hidden></a>
       <p class="hero__entrega">🛵 Delivery a partir de R$ 6 · Pix e cartão</p>
       <p class="status" id="status" hidden><span class="status__ponto"></span><span id="status-texto"></span></p>
 
@@ -567,6 +571,8 @@ window.CONFIG = {
   // Deixe "" para usar só as cores.
   logo: "img/logo.png",          // exemplo: "img/logo.png"
   fotoCapa: "img/capa.jpg",      // exemplo: "img/capa.jpg"
+  // Capa de Natal: troca sozinha entre as datas (mês-dia). O arquivo fica no GitHub ao lado deste.
+  capaEspecial: { foto: "capa-natal.webp", de: "12-10", ate: "12-26" },
 
   // WhatsApp: só números, com 55 + DDD + número. Exemplo: 5511999998888
   whatsapp: "5599984360319",
@@ -881,6 +887,8 @@ window.CONFIG = {
   }
 
   /* Foto de capa */
+  var ce = c.capaEspecial, hojeMD = agoraCodo().data.slice(5);
+  if (ce && ce.foto && hojeMD >= ce.de && hojeMD <= ce.ate) c.fotoCapa = ce.foto;
   if (c.fotoCapa) {
     /* endereço completo da imagem: o CSS está na pasta css/ e acharia o caminho errado */
     raiz.setProperty("--foto", 'url("' + new URL(c.fotoCapa, document.baseURI).href + '")');
@@ -1557,6 +1565,12 @@ window.CONFIG = {
         grupoChips("Arroz (escolha 1)", d.arroz);
         grupoChips("Acompanhamentos (vão todos)", d.acompanhamentos);
         grupoChips("Especiais do dia", d.especiais);
+        if ((d.promo || []).length) {
+          box.appendChild(criar("p", "do-dia__rotulo", "Promoção de hoje"));
+          d.promo.forEach(function (t) { box.appendChild(criar("p", "do-dia__promo", "🔥 " + t)); });
+          var pc = document.getElementById("promo-hoje");
+          if (pc) { pc.textContent = "🔥 Promoção de hoje: " + d.promo.join(" · "); pc.hidden = false; }
+        }
       };
 
       /* só vale se for de hoje (quando a data for preenchida) */
@@ -1578,7 +1592,7 @@ window.CONFIG = {
         return d;
       };
       var lerCSV = function (txt) {
-        var d = { data: "", arroz: [], acompanhamentos: [], especiais: [] };
+        var d = { data: "", arroz: [], acompanhamentos: [], especiais: [], promo: [] };
         txt.split(/\r?\n/).forEach(function (linha) {
           var cols = [], atual = "", aspas = false;
           for (var k = 0; k < linha.length; k++) {
@@ -1595,6 +1609,7 @@ window.CONFIG = {
           else if (tipo.indexOf("arroz") === 0) d.arroz.push(item);
           else if (tipo.indexOf("acomp") === 0) d.acompanhamentos.push(item);
           else if (tipo.indexOf("especia") === 0) d.especiais.push(item);
+          else if (tipo.indexOf("promo") === 0) d.promo.push(item);
         });
         return d;
       };
