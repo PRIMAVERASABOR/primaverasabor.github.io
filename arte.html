@@ -514,6 +514,8 @@
     });
   };
   el("dois").onclick = function () {
+    /* domingo não tem cardápio: vai só o aviso de fechado do Seu Primo */
+    if (+selDia.value === 0) return el("compartilhar-primo").onclick();
     blobDe(cv2, function (b1) {
       blobDe(cv, function (b2) {
         var a1 = new File([b1], "1-" + nomePrimo(), { type: "image/jpeg" }), a2 = new File([b2], "2-" + nomeArquivo(), { type: "image/jpeg" });
