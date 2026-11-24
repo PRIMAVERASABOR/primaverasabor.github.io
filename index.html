@@ -692,12 +692,15 @@ window.CONFIG = {
   // dias: 0 = domingo, 1 = segunda ... 6 = sábado. Horas no formato "18:00".
   // Para fechar num dia especial (feriado), coloque a data em "fechadoEm": ["2026-12-25"]
   // ESPETINHOS: cardápio do dia (as carnes são fixas; arroz e acompanhamentos mudam por dia da semana)
-  // O cardápio FIXO de cada dia está em "semana" (1 = segunda ... 6 = sábado). Domingo fechado.
+  // O cardápio FIXO de cada dia vem da aba "Semana (fixo)" da planilha. O "semana" abaixo é só a reserva
+  // (usado se a planilha não abrir). 1 = segunda ... 6 = sábado. Domingo fechado.
   // A PLANILHA DO GOOGLE serve só para EXCEÇÕES: se ela tiver a linha "Data" com a data de HOJE,
   // o que estiver nela troca o fixo naquele dia (só as partes preenchidas: Arroz, Acompanhamento,
   // Especial, Promo). Com outra data ou vazia, vale o fixo.
   cardapioDoDia: {
     planilha: "https://docs.google.com/spreadsheets/d/1hI7qkLOykJHzjBG6UeU47jQ-9PSJE16Z3R0yqFX7BIk/gviz/tq?tqx=out:csv&gid=0&headers=1",
+    // Aba "Semana (fixo)" da mesma planilha: o cardápio fixo de cada dia. Se ela não abrir, vale o "semana" abaixo.
+    planilhaSemana: "https://docs.google.com/spreadsheets/d/1hI7qkLOykJHzjBG6UeU47jQ-9PSJE16Z3R0yqFX7BIk/gviz/tq?tqx=out:csv&gid=38650212&headers=1",
     semana: {
       1: { // segunda
         arroz: ["Arroz Branco", "Arroz de Cuxá", "Arroz Baião"],
@@ -1829,10 +1832,50 @@ window.CONFIG = {
         });
         return d;
       };
+
+  /* aba "Semana (fixo)" da planilha: 1ª linha = Tipo, Segunda ... Sábado; cada linha = Arroz / Acompanhamento / Especial */
+  var csvLinha = function (linha) {
+    var cols = [], atual = "", aspas = false;
+    for (var k = 0; k < linha.length; k++) {
+      var ch = linha[k];
+      if (ch === '"') { if (aspas && linha[k + 1] === '"') { atual += '"'; k++; } else aspas = !aspas; }
+      else if (ch === "," && !aspas) { cols.push(atual); atual = ""; }
+      else atual += ch;
+    }
+    cols.push(atual);
+    return cols;
+  };
+  var semAcento = function (s) { return String(s || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); };
+  var lerSemana = function (txt) {
+    var linhasS = txt.split(/\r?\n/).map(csvLinha), mapa = {}, sem = {};
+    var nomesDia = { segunda: 1, terca: 2, quarta: 3, quinta: 4, sexta: 5, sabado: 6 };
+    (linhasS[0] || []).forEach(function (h, i) { var n = semAcento(h); for (var k in nomesDia) if (n.indexOf(k) === 0) mapa[i] = nomesDia[k]; });
+    linhasS.slice(1).forEach(function (cols) {
+      var t = semAcento(cols[0]);
+      var chave = t.indexOf("arroz") === 0 ? "arroz" : t.indexOf("acomp") === 0 ? "acompanhamentos" : t.indexOf("especia") === 0 ? "especiais" : "";
+      if (!chave) return;
+      Object.keys(mapa).forEach(function (i) {
+        var item = (cols[i] || "").replace(/\*/g, "").trim();
+        if (!item) return;
+        var d = mapa[i];
+        sem[d] = sem[d] || { arroz: [], acompanhamentos: [], especiais: [] };
+        sem[d][chave].push(item);
+      });
+    });
+    return sem;
+  };
+  /* troca o fixo guardado no arquivo pelo da planilha (só os dias que tiverem arroz ou acompanhamento) */
+  var usarSemana = function (destino, sem) {
+    var n = 0;
+    Object.keys(sem).forEach(function (d) { if (sem[d].arroz.length || sem[d].acompanhamentos.length) { destino[d] = sem[d]; n++; } });
+    return n;
+  };
+      var motivoSemana = "";
       /* abra o site com ?teste no fim do endereço para ver o motivo */
       var diagnostico = function () {
-        if (!/teste|debug/.test(location.search) || !motivo) return;
-        box.appendChild(criar("p", "do-dia__sub", "Diagnóstico: " + motivo + "."));
+        if (!/teste|debug/.test(location.search)) return;
+        if (motivoSemana) box.appendChild(criar("p", "do-dia__sub", "Diagnóstico (fixo): " + motivoSemana + "."));
+        if (motivo) box.appendChild(criar("p", "do-dia__sub", "Diagnóstico (exceção): " + motivo + "."));
       };
       /* cardápio fixo do dia da semana, com a exceção da planilha por cima (só o que ela trouxer) */
       var reserva = function (exc) {
@@ -1844,11 +1887,23 @@ window.CONFIG = {
         return (d.arroz.length || d.acompanhamentos.length) ? d : null;
       };
       if (dd.planilha && window.fetch) {
-        var url = dd.planilha + (dd.planilha.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now();
-        fetch(url, { cache: "no-store" })
-          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
-          .then(function (txt) { desenhar(reserva(valido(lerCSV(txt)))); diagnostico(); })
-          .catch(function (err) { motivo = "não consegui abrir a planilha (" + (err && err.message || "erro") + ")"; desenhar(reserva()); diagnostico(); });
+        var baixar = function (u) {
+          return fetch(u + (u.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" })
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); });
+        };
+        dd.semana = dd.semana || {};
+        var pSemana = !dd.planilhaSemana ? Promise.resolve() : baixar(dd.planilhaSemana).then(function (txt) {
+          var n = usarSemana(dd.semana, lerSemana(txt));
+          motivoSemana = n ? "lido da aba Semana da planilha (" + n + " dias)" : "aba Semana vazia, usei o fixo guardado no site";
+        }, function (err) { motivoSemana = "não consegui abrir a aba Semana (" + (err && err.message || "erro") + "), usei o fixo guardado no site"; });
+        var pExc = baixar(dd.planilha).then(function (txt) { return { txt: txt }; }, function (err) { return { erro: err }; });
+        Promise.all([pSemana, pExc]).then(function (r) {
+          try {
+            if (r[1].txt != null) desenhar(reserva(valido(lerCSV(r[1].txt))));
+            else { motivo = "não consegui abrir a planilha (" + (r[1].erro && r[1].erro.message || "erro") + ")"; desenhar(reserva()); }
+          } catch (e) { motivo = "erro ao ler a planilha (" + e.message + ")"; desenhar(reserva()); }
+          diagnostico();
+        });
       } else {
         desenhar(reserva());
       }
