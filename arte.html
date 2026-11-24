@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Arte do cardápio – Primavera Sabor</title>
+<title>Artes do dia – Primavera Sabor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Allura&family=Poppins:wght@300;400;500;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Allura&family=Anton&family=Lilita+One&family=Poppins:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root { --fundo:#141110; --cartao:#211c19; --texto:#f4ede4; --suave:#b9ab9b; --ouro:#e3a72f; --verde:#2f8f5b; }
   * { box-sizing: border-box; }
@@ -34,13 +34,25 @@
   .modelo { background:#2a2420; color:var(--suave); padding:10px; font-size:15px; border:2px solid transparent; }
   .modelo.ativo { border-color:var(--ouro); color:var(--texto); }
   .dica { font-size:13px; color:var(--suave); margin:6px 0 0; }
+  h2 { font-size:17px; margin:22px 0 8px; }
+  h2 small { color:var(--suave); font-weight:400; }
+  input[type=range] { width:100%; accent-color:var(--ouro); }
 </style>
 </head>
 <body>
 <main>
-  <h1>Arte do cardápio do dia</h1>
-  <p class="sub">Feita sozinha com o que está na planilha. Confira e poste.</p>
+  <h1>Artes do dia</h1>
+  <p class="sub">Feitas sozinhas: 1º o Seu Primo chamando, 2º o cardápio. Confira e poste nessa ordem.</p>
   <p id="status" class="aviso">Carregando a planilha…</p>
+  <button id="dois" class="principal largo" style="width:100%;margin:0 0 6px">Compartilhar as duas artes</button>
+  <p class="dica" style="margin:0 0 4px">No celular abre o Instagram/WhatsApp com as duas imagens já na ordem certa.</p>
+  <h2>1º story: Seu Primo <small>(chama para o próximo)</small></h2>
+  <canvas id="arte-primo" width="1080" height="1920" aria-label="Prévia do story do Seu Primo"></canvas>
+  <div class="botoes">
+    <button id="compartilhar-primo" class="secundario">Compartilhar</button>
+    <button id="baixar-primo" class="secundario">Baixar imagem</button>
+  </div>
+  <h2>2º story: cardápio do dia</h2>
   <div class="modelos"><button id="m-novo" class="modelo ativo">Novo (verde)</button><button id="m-classico" class="modelo">Clássico</button></div>
   <canvas id="arte" width="1080" height="1920" aria-label="Prévia da arte do cardápio"></canvas>
   <div class="botoes">
@@ -61,6 +73,8 @@
     <textarea id="espetos" rows="2"></textarea>
     <label for="promo">Promoção do dia (opcional)</label>
     <textarea id="promo" rows="2"></textarea>
+    <label for="altura-click">Altura do “click aqui” no story do Seu Primo (para ficar perto da mão dele)</label>
+    <input id="altura-click" type="range" min="500" max="1400" step="10" value="905">
   </details>
 </main>
 <script>
@@ -101,6 +115,16 @@
       acompanhamentos: ["Purê", "Feijão", "Macarrão", "Macaxeira", "Farofa", "Vinagrete"]
     }
   };
+  /* Seu Primo de cada dia (arquivos na raiz do site). Falta algum? usa o RESERVA. */
+  var PRIMO_DIA = ["primo-domingo.jpg", "primo-segunda.jpg", "primo-terca.jpg", "primo-quarta.jpg", "primo-quinta.jpg", "primo-sexta.jpg", "primo-sabado.jpg"];
+  var PRIMO_RESERVA = "primo-terca.jpg";
+  /* onde a pontinha do balão aponta (posição x da cabeça do Seu Primo em cada foto), domingo..sábado */
+  var PRIMO_CAUDA = [250, 300, 585, 330, 300, 300, 290];
+  /* altura do "click aqui" em cada foto (perto da mão que aponta), domingo..sábado */
+  var PRIMO_CLICK = [905, 905, 905, 905, 1000, 905, 720];
+  /* quanto a foto sobe (px) para mostrar algo que fica embaixo, domingo..sábado */
+  var PRIMO_SOBE = [0, 0, 0, 0, 0, 0, 130];
+  var DIAS_LONGOS = ["DOMINGO", "SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO"];
   /* ========================== */
 
   var cv = document.getElementById("arte"), ctx = cv.getContext("2d");
@@ -256,6 +280,7 @@
   };
 
   function desenhar() {
+    desenharPrimo();
     if (modelo === "novo") return desenharNovo();
     ctx.clearRect(0, 0, 1080, 1920);
     if (fundo.complete && fundo.naturalWidth) ctx.drawImage(fundo, 0, 0, 1080, 1920);
@@ -400,6 +425,104 @@
     ctx.restore();
   }
 
+  /* ====== STORY DO SEU PRIMO ====== */
+  var cv2 = el("arte-primo"), c2 = cv2.getContext("2d"), fotoDia = new Image(), fotoDiaN = -1;
+  var rngClick = el("altura-click");
+  var carregarFotoDia = function () {
+    var n = +selDia.value; if (n === fotoDiaN) return; fotoDiaN = n;
+    rngClick.value = PRIMO_CLICK[n] || 905;
+    fotoDia.onerror = function () { if (fotoDia.src.indexOf(PRIMO_RESERVA) < 0) fotoDia.src = PRIMO_RESERVA; };
+    fotoDia.onload = desenharPrimo;
+    fotoDia.src = PRIMO_DIA[n] || PRIMO_RESERVA;
+  };
+  var f2 = function (peso, px, fam) { c2.font = (peso ? peso + " " : "") + px + "px " + fam; };
+  var cx2 = function (x, y, w, h, r) { c2.beginPath(); c2.moveTo(x + r, y); c2.arcTo(x + w, y, x + w, y + h, r); c2.arcTo(x + w, y + h, x, y + h, r); c2.arcTo(x, y + h, x, y, r); c2.arcTo(x, y, x + w, y, r); c2.closePath(); };
+  var faixa = function (y0, y1, a0, a1, cor) {
+    var g = c2.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, cor + a0 + ")"); g.addColorStop(1, cor + a1 + ")");
+    c2.fillStyle = g; c2.fillRect(0, y0, 1080, y1 - y0);
+    if (a1 > a0) { c2.fillStyle = cor + a1 + ")"; c2.fillRect(0, y1, 1080, 1920 - y1); }
+  };
+  function desenharPrimo() {
+    carregarFotoDia();
+    var n = +selDia.value, domingo = n === 0;
+    c2.save(); c2.letterSpacing = "0px"; c2.textBaseline = "alphabetic"; c2.shadowBlur = 0;
+    c2.fillStyle = "#0e201a"; c2.fillRect(0, 0, 1080, 1920);
+    if (pronta(fotoDia)) {
+      var k = Math.max(1080 / fotoDia.naturalWidth, 1920 / fotoDia.naturalHeight), w = fotoDia.naturalWidth * k, h = fotoDia.naturalHeight * k;
+      c2.drawImage(fotoDia, (1080 - w) / 2, (1920 - h) / 2 - (PRIMO_SOBE[n] || 0), w, h);
+    }
+    faixa(0, 640, 0.92, 0, "rgba(35,71,58,");
+    faixa(1250 + (PRIMO_SOBE[n] || 0) / 2, 1560, 0, 0.93, "rgba(14,32,26,");
+    if (!domingo) { var gl = c2.createLinearGradient(594, 0, 1080, 0); gl.addColorStop(0, "rgba(14,32,26,0)"); gl.addColorStop(1, "rgba(14,32,26,.55)"); c2.fillStyle = gl; c2.fillRect(594, 0, 486, 1920); }
+
+    /* selo do dia */
+    var lab = DIAS_LONGOS[n] || "";
+    f2("700", 34, "Poppins, sans-serif"); c2.letterSpacing = "1px";
+    var lw = c2.measureText(lab).width;
+    c2.fillStyle = AMARELO; cx2(540 - lw / 2 - 34, 175, lw + 68, 60, 30); c2.fill();
+    c2.fillStyle = VERDE; c2.textAlign = "center"; c2.fillText(lab, 540, 217); c2.letterSpacing = "0px";
+
+    /* balão */
+    c2.shadowColor = "rgba(0,0,0,.45)"; c2.shadowBlur = 28; c2.shadowOffsetY = 12;
+    c2.fillStyle = CREME; cx2(120, 262, 840, 208, 56); c2.fill();
+    var tx = PRIMO_CAUDA[n] || 585;
+    c2.beginPath(); c2.moveTo(tx - 25, 455); c2.lineTo(tx + 75, 455); c2.lineTo(tx, 560); c2.closePath(); c2.fill();
+    c2.shadowBlur = 0; c2.shadowOffsetY = 0;
+    f2("", 138, "'Lilita One', Poppins, sans-serif");
+    var partes = [["Ô primo", VERDE], ["(a)", "#C8442B"], ["!", VERDE]];
+    var tot = 0; partes.forEach(function (p) { tot += c2.measureText(p[0]).width; });
+    var x = 540 - tot / 2; c2.textAlign = "left"; c2.textBaseline = "middle";
+    partes.forEach(function (p) { c2.fillStyle = p[1]; c2.fillText(p[0], x, 370); x += c2.measureText(p[0]).width; });
+    c2.textBaseline = "alphabetic";
+
+    if (domingo) {
+      c2.textAlign = "center";
+      c2.fillStyle = CREME; f2("500", 44, "Poppins, sans-serif"); c2.fillText("Domingo é dia de descanso:", 540, 1600);
+      c2.fillStyle = AMARELO; f2("", 96, "Anton, sans-serif"); c2.fillText("HOJE ESTAMOS FECHADOS", 540, 1765, 1000);
+      c2.fillStyle = CREME; f2("700", 46, "Poppins, sans-serif"); c2.fillText("Voltamos segunda, a partir das 18h!", 540, 1840, 1000);
+    } else {
+      var yc = +rngClick.value;
+      c2.textAlign = "right";
+      c2.fillStyle = AMARELO; f2("", 128, "Anton, sans-serif"); c2.fillText("click", 1040, yc);
+      c2.fillStyle = CREME; f2("", 104, "Anton, sans-serif"); c2.fillText("aqui", 1040, yc + 110);
+      c2.fillStyle = CREME; f2("500", 28, "Poppins, sans-serif"); c2.fillText("toque do lado direito", 1040, yc + 155);
+      c2.textAlign = "center";
+      f2("500", 44, "Poppins, sans-serif"); c2.fillText("Fica de olho no próximo story:", 540, 1575);
+      var dl = DIAS_LONGOS[n], art = (n === 6 || n === 0) ? "DO" : "DA";
+      f2("", 76, "Anton, sans-serif"); c2.fillText("CARDÁPIO " + art, 540, 1695);
+      c2.fillStyle = AMARELO; f2("", 150, "Anton, sans-serif"); c2.fillText(dl, 540, 1865, 1000);
+    }
+    c2.restore();
+  }
+  rngClick.addEventListener("input", desenharPrimo);
+  selDia.addEventListener("change", desenharPrimo);
+  var nomePrimo = function () { return "seu-primo-" + (DIAS[+selDia.value] || "dia").normalize("NFD").replace(/[̀-ͯ]/g, "") + "-" + dataArte + ".jpg"; };
+  var blobDe = function (canvas, cb) { canvas.toBlob(function (b) { cb(b); }, "image/jpeg", 0.92); };
+  var baixarBlob = function (b, nome) {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  };
+  var compartilharArqs = function (arqs, seNao) {
+    if (navigator.canShare && navigator.canShare({ files: arqs })) navigator.share({ files: arqs }).catch(function () {});
+    else seNao();
+  };
+  el("baixar-primo").onclick = function () { blobDe(cv2, function (b) { baixarBlob(b, nomePrimo()); }); };
+  el("compartilhar-primo").onclick = function () {
+    blobDe(cv2, function (b) {
+      compartilharArqs([new File([b], nomePrimo(), { type: "image/jpeg" })], function () { aviso("atencao", "Este navegador não deixa compartilhar direto. Use “Baixar imagem” e poste pela galeria."); });
+    });
+  };
+  el("dois").onclick = function () {
+    blobDe(cv2, function (b1) {
+      blobDe(cv, function (b2) {
+        var a1 = new File([b1], "1-" + nomePrimo(), { type: "image/jpeg" }), a2 = new File([b2], "2-" + nomeArquivo(), { type: "image/jpeg" });
+        compartilharArqs([a1, a2], function () { baixarBlob(b1, a1.name); setTimeout(function () { baixarBlob(b2, a2.name); }, 700); aviso("ok", "As duas imagens foram baixadas. Poste primeiro a do Seu Primo."); });
+      });
+    });
+  };
+  /* ================================ */
+
   var nomeArquivo = function () { return "cardapio-" + (DIAS[+selDia.value] || "dia").normalize("NFD").replace(/[̀-ͯ]/g, "") + "-" + dataArte + ".jpg"; };
   var gerar = function (cb) { cv.toBlob(function (b) { cb(b); }, "image/jpeg", 0.92); };
 
@@ -450,7 +573,7 @@
   if (/natal/.test(location.search)) md = "12-20";
   primo.src = (md >= "12-10" && md <= "12-26") ? "arte-primo-natal.webp" : "arte-primo.webp";
   fundo.src = FUNDO;
-  var fontes = ["300 38px Poppins", "800 50px Poppins", "500 36px Poppins", "118px Allura"].map(function (f) { return document.fonts ? document.fonts.load(f, "AÇÃO") : null; });
+  var fontes = ["300 38px Poppins", "800 50px Poppins", "500 36px Poppins", "700 36px Poppins", "118px Allura", "100px Anton", "100px 'Lilita One'"].map(function (f) { return document.fonts ? document.fonts.load(f, "AÇÃO") : null; });
   Promise.all(fontes).catch(function () {}).then(function () { desenhar(); buscar(); });
 })();
 </script>
